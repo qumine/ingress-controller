@@ -78,6 +78,7 @@ func (k8s *K8S) Start(context context.Context) {
 				service := extractRoutableService(obj)
 				if service != nil {
 					if service.hostname != "" {
+						metricsRoutes.Inc()
 						server.CreateRoute(service.hostname, service.backend)
 					}
 				}
@@ -86,6 +87,7 @@ func (k8s *K8S) Start(context context.Context) {
 				service := extractRoutableService(obj)
 				if service != nil {
 					if service.hostname != "" {
+						metricsRoutes.Dec()
 						server.DeleteRoute(service.hostname)
 					}
 				}
