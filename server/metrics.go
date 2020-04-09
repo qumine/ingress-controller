@@ -10,7 +10,7 @@ var (
 			Name: "qumine_ingress_connections",
 			Help: "The amount of active connections",
 		},
-		[]string{"hostname"},
+		[]string{"route"},
 	)
 	metricsBytes = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
