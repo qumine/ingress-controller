@@ -141,6 +141,7 @@ func (server *Server) findAndConnectBackend(context context.Context, client net.
 	route, err := ReadRoute(hostname)
 	if err != nil {
 		logrus.WithError(err).Warn("no matching route found")
+		metricsConnections.With(prometheus.Labels{"error": "no route found"}).Inc()
 		return
 	}
 	logrus.WithFields(logrus.Fields{
@@ -154,6 +155,7 @@ func (server *Server) findAndConnectBackend(context context.Context, client net.
 			"client": client.RemoteAddr(),
 			"route":  route,
 		}).Error("connecting to upstream failed")
+		metricsConnections.With(prometheus.Labels{"error": "coonection failed"}).Inc()
 		return
 	}
 	defer metricsConnections.With(prometheus.Labels{"route": route}).Dec()

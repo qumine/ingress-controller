@@ -12,6 +12,13 @@ var (
 		},
 		[]string{"route"},
 	)
+	metricsErrors = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "qumine_ingress_errors_total",
+			Help: "The total error count",
+		},
+		[]string{"error"},
+	)
 	metricsBytes = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "qumine_ingress_bytes_total",
