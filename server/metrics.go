@@ -30,5 +30,6 @@ var (
 
 func init() {
 	prometheus.MustRegister(metricsConnections)
+	prometheus.MustRegister(metricsErrorsTotal)
 	prometheus.MustRegister(metricsBytesTotal)
 }
