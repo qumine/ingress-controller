@@ -12,14 +12,14 @@ var (
 		},
 		[]string{"route"},
 	)
-	metricsErrors = prometheus.NewCounterVec(
+	metricsErrorsTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "qumine_ingress_errors_total",
 			Help: "The total error count",
 		},
 		[]string{"error"},
 	)
-	metricsBytes = prometheus.NewCounterVec(
+	metricsBytesTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "qumine_ingress_bytes_total",
 			Help: "The total bytes transmitted",
@@ -30,5 +30,5 @@ var (
 
 func init() {
 	prometheus.MustRegister(metricsConnections)
-	prometheus.MustRegister(metricsBytes)
+	prometheus.MustRegister(metricsBytesTotal)
 }
