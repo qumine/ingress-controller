@@ -158,7 +158,6 @@ func (server *Server) findAndConnectBackend(context context.Context, client net.
 	}
 	defer metricsConnections.With(prometheus.Labels{"hostname": hostname}).Dec()
 	metricsConnections.With(prometheus.Labels{"hostname": hostname}).Inc()
-	metricsConnectionsTotal.With(prometheus.Labels{"hostname": hostname}).Inc()
 	logrus.WithFields(logrus.Fields{
 		"client":   client.RemoteAddr(),
 		"upstream": upstream.RemoteAddr(),

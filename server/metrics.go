@@ -12,13 +12,6 @@ var (
 		},
 		[]string{"hostname"},
 	)
-	metricsConnectionsTotal = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "qumine_ingress_connections_total",
-			Help: "The total amount of connections",
-		},
-		[]string{"hostname"},
-	)
 	metricsBytes = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "qumine_ingress_bytes_total",
@@ -30,6 +23,5 @@ var (
 
 func init() {
 	prometheus.MustRegister(metricsConnections)
-	prometheus.MustRegister(metricsConnectionsTotal)
 	prometheus.MustRegister(metricsBytes)
 }
