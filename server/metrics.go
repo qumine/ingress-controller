@@ -17,7 +17,7 @@ var (
 			Name: "qumine_ingress_bytes_total",
 			Help: "The total bytes transmitted",
 		},
-		[]string{"direction"},
+		[]string{"direction", "route"},
 	)
 )
 

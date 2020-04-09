@@ -184,11 +184,11 @@ func (server *Server) findAndConnectBackend(context context.Context, client net.
 		}).Error("clearing deadline failed")
 		return
 	}
-	server.relayConnections(context, client, upstream)
+	server.relayConnections(context, route, client, upstream)
 	return
 }
 
-func (server *Server) relayConnections(context context.Context, client net.Conn, upstream net.Conn) {
+func (server *Server) relayConnections(context context.Context, route string, client net.Conn, upstream net.Conn) {
 	defer upstream.Close()
 	defer logrus.WithFields(logrus.Fields{
 		"client":   client.RemoteAddr(),
@@ -196,8 +196,8 @@ func (server *Server) relayConnections(context context.Context, client net.Conn,
 	}).Info("closed upstream connection")
 
 	errors := make(chan error, 2)
-	go server.relay(client, upstream, errors, "upstream", client, upstream)
-	go server.relay(upstream, client, errors, "downstream", client, upstream)
+	go server.relay(client, upstream, errors, "upstream", route, client, upstream)
+	go server.relay(upstream, client, errors, "downstream", route, client, upstream)
 	logrus.WithFields(logrus.Fields{
 		"client":   client.RemoteAddr(),
 		"upstream": upstream.RemoteAddr(),
@@ -217,9 +217,9 @@ func (server *Server) relayConnections(context context.Context, client net.Conn,
 	}
 }
 
-func (server *Server) relay(incoming io.Reader, outgoing io.Writer, errors chan<- error, direction string, client net.Conn, upstream net.Conn) {
+func (server *Server) relay(incoming io.Reader, outgoing io.Writer, errors chan<- error, direction string, route string, client net.Conn, upstream net.Conn) {
 	amount, err := io.Copy(outgoing, incoming)
-	metricsBytes.With(prometheus.Labels{"direction": direction}).Add(float64(amount))
+	metricsBytes.With(prometheus.Labels{"direction": direction, "route": route}).Add(float64(amount))
 	logrus.WithFields(logrus.Fields{
 		"client":    client.RemoteAddr(),
 		"upstream":  upstream.RemoteAddr(),
