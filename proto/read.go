@@ -53,62 +53,47 @@ func ReadPacket(reader io.Reader, addr net.Addr, state State) (*Packet, error) {
 }
 
 func readLegacyServerListPing(reader *bufio.Reader, addr net.Addr) (*Packet, error) {
-	packetID, err := reader.ReadByte()
+	_, err := reader.ReadByte()
 	if err != nil {
 		return nil, err
-	}
-	if packetID != LegacyServerListPingID {
-		return nil, errors.Errorf("expected legacy server listing ping packet ID, got %x", packetID)
 	}
 
-	payload, err := reader.ReadByte()
+	_, err = reader.ReadByte()
 	if err != nil {
 		return nil, err
-	}
-	if payload != 0x01 {
-		return nil, errors.Errorf("expected payload=1 from legacy server listing ping, got %x", payload)
 	}
 
-	packetIDForPluginMsg, err := reader.ReadByte()
+	_, err = reader.ReadByte()
 	if err != nil {
 		return nil, err
-	}
-	if packetIDForPluginMsg != 0xFA {
-		return nil, errors.Errorf("expected packetIDForPluginMsg=0xFA from legacy server listing ping, got %x", packetIDForPluginMsg)
 	}
 
-	messageNameShortLen, err := readUnsignedShort(reader)
+	messageNameLength, err := readUnsignedShort(reader)
 	if err != nil {
 		return nil, err
-	}
-	if messageNameShortLen != 11 {
-		return nil, errors.Errorf("expected messageNameShortLen=11 from legacy server listing ping, got %d", messageNameShortLen)
 	}
 
-	messageName, err := readUTF16BEString(reader, messageNameShortLen)
+	_, err = readUTF16BEString(reader, messageNameLength)
 	if err != nil {
 		return nil, err
-	}
-	if messageName != "MC|PingHost" {
-		return nil, errors.Errorf("expected messageName=MC|PingHost, got %s", messageName)
 	}
 
-	remainingLen, err := readUnsignedShort(reader)
+	remainingLength, err := readUnsignedShort(reader)
 	if err != nil {
 		return nil, err
 	}
-	remainingReader := io.LimitReader(reader, int64(remainingLen))
+	remainingReader := io.LimitReader(reader, int64(remainingLength))
 
 	protocolVersion, err := readByte(remainingReader)
 	if err != nil {
 		return nil, err
 	}
 
-	hostnameLen, err := readUnsignedShort(remainingReader)
+	hostnameLength, err := readUnsignedShort(remainingReader)
 	if err != nil {
 		return nil, err
 	}
-	hostname, err := readUTF16BEString(remainingReader, hostnameLen)
+	hostname, err := readUTF16BEString(remainingReader, hostnameLength)
 	if err != nil {
 		return nil, err
 	}
