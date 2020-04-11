@@ -86,11 +86,17 @@ func readLegacyServerListPing(reader *bufio.Reader, addr net.Addr) (*Packet, err
 	}
 
 	messageName, err := readUTF16BEString(reader, messageNameShortLen)
+	if err != nil {
+		return nil, err
+	}
 	if messageName != "MC|PingHost" {
 		return nil, errors.Errorf("expected messageName=MC|PingHost, got %s", messageName)
 	}
 
 	remainingLen, err := readUnsignedShort(reader)
+	if err != nil {
+		return nil, err
+	}
 	remainingReader := io.LimitReader(reader, int64(remainingLen))
 
 	protocolVersion, err := readByte(remainingReader)
@@ -182,7 +188,7 @@ func readFrame(reader io.Reader, addr net.Addr) (*Frame, error) {
 
 func readVarInt(reader io.Reader) (int, error) {
 	b := make([]byte, 1)
-	var numRead uint = 0
+	var numRead uint
 	result := 0
 	for numRead <= 5 {
 		n, err := reader.Read(b)
