@@ -118,12 +118,13 @@ func (k8s *K8S) close() {
 	k8s.stop <- struct{}{}
 }
 
-type K8SService struct {
+// Service represents the service definition from kubernetes.
+type Service struct {
 	hostname string
 	backend  string
 }
 
-func extractRoutableService(obj interface{}) *K8SService {
+func extractRoutableService(obj interface{}) *Service {
 	service, ok := obj.(*v1.Service)
 	if !ok {
 		return nil
@@ -141,7 +142,7 @@ func extractRoutableService(obj interface{}) *K8SService {
 	return nil
 }
 
-func buildDetails(service *v1.Service, hostname string, portname string) *K8SService {
+func buildDetails(service *v1.Service, hostname string, portname string) *Service {
 	clusterIP := service.Spec.ClusterIP
 	port := "25565"
 	for _, p := range service.Spec.Ports {
@@ -149,7 +150,7 @@ func buildDetails(service *v1.Service, hostname string, portname string) *K8SSer
 			port = strconv.Itoa(int(p.Port))
 		}
 	}
-	rs := &K8SService{
+	rs := &Service{
 		hostname: hostname,
 		backend:  net.JoinHostPort(clusterIP, port),
 	}

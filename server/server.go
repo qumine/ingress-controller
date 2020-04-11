@@ -98,7 +98,7 @@ func (server *Server) handleConnection(context context.Context, client net.Conn)
 		"packetID":     packet.PacketID,
 	}).Debug("received packet")
 
-	if packet.PacketID == proto.PacketIdHandshake {
+	if packet.PacketID == proto.HandshakeID {
 		handshake, err := proto.ReadHandshake(packet.Data)
 		if err != nil {
 			logrus.WithError(err).WithFields(logrus.Fields{
@@ -113,7 +113,7 @@ func (server *Server) handleConnection(context context.Context, client net.Conn)
 
 		hostname := handshake.ServerAddress
 		server.findAndConnectBackend(context, client, buffer, hostname, "handshake")
-	} else if packet.PacketID == proto.PacketIdLegacyServerListPing {
+	} else if packet.PacketID == proto.LegacyServerListPingID {
 		handshake, ok := packet.Data.(*proto.LegacyServerListPing)
 		if !ok {
 			logrus.WithError(err).WithFields(logrus.Fields{
@@ -203,7 +203,7 @@ func (server *Server) relayConnections(context context.Context, route string, cl
 	logrus.WithFields(logrus.Fields{
 		"client":   client.RemoteAddr(),
 		"upstream": upstream.RemoteAddr(),
-	}).Debug("relayed connection to upsteam")
+	}).Debug("relayed connection to upstream")
 
 	select {
 	case err := <-errors:

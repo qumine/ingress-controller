@@ -15,6 +15,7 @@ import (
 	"golang.org/x/text/transform"
 )
 
+// ReadPacket reads a single packet from the given reader.
 func ReadPacket(reader io.Reader, addr net.Addr, state State) (*Packet, error) {
 	if state == StateHandshaking {
 		bufReader := bufio.NewReader(reader)
@@ -23,22 +24,22 @@ func ReadPacket(reader io.Reader, addr net.Addr, state State) (*Packet, error) {
 			return nil, err
 		}
 
-		if data[0] == PacketIdLegacyServerListPing {
-			return ReadLegacyServerListPing(bufReader, addr)
+		if data[0] == LegacyServerListPingID {
+			return readLegacyServerListPing(bufReader, addr)
 		}
 		reader = bufReader
 	}
 
-	frame, err := ReadFrame(reader, addr)
+	frame, err := readFrame(reader, addr)
 	if err != nil {
 		return nil, err
 	}
 
-	packet := &Packet{Length: frame.Length}
+	packet := &Packet{Length: frame.length}
 
-	remainder := bytes.NewBuffer(frame.Payload)
+	remainder := bytes.NewBuffer(frame.payload)
 
-	packet.PacketID, err = ReadVarInt(remainder)
+	packet.PacketID, err = readVarInt(remainder)
 	if err != nil {
 		return nil, err
 	}
@@ -51,12 +52,12 @@ func ReadPacket(reader io.Reader, addr net.Addr, state State) (*Packet, error) {
 	return packet, nil
 }
 
-func ReadLegacyServerListPing(reader *bufio.Reader, addr net.Addr) (*Packet, error) {
+func readLegacyServerListPing(reader *bufio.Reader, addr net.Addr) (*Packet, error) {
 	packetID, err := reader.ReadByte()
 	if err != nil {
 		return nil, err
 	}
-	if packetID != PacketIdLegacyServerListPing {
+	if packetID != LegacyServerListPingID {
 		return nil, errors.Errorf("expected legacy server listing ping packet ID, got %x", packetID)
 	}
 
@@ -76,7 +77,7 @@ func ReadLegacyServerListPing(reader *bufio.Reader, addr net.Addr) (*Packet, err
 		return nil, errors.Errorf("expected packetIDForPluginMsg=0xFA from legacy server listing ping, got %x", packetIDForPluginMsg)
 	}
 
-	messageNameShortLen, err := ReadUnsignedShort(reader)
+	messageNameShortLen, err := readUnsignedShort(reader)
 	if err != nil {
 		return nil, err
 	}
@@ -84,35 +85,35 @@ func ReadLegacyServerListPing(reader *bufio.Reader, addr net.Addr) (*Packet, err
 		return nil, errors.Errorf("expected messageNameShortLen=11 from legacy server listing ping, got %d", messageNameShortLen)
 	}
 
-	messageName, err := ReadUTF16BEString(reader, messageNameShortLen)
+	messageName, err := readUTF16BEString(reader, messageNameShortLen)
 	if messageName != "MC|PingHost" {
 		return nil, errors.Errorf("expected messageName=MC|PingHost, got %s", messageName)
 	}
 
-	remainingLen, err := ReadUnsignedShort(reader)
+	remainingLen, err := readUnsignedShort(reader)
 	remainingReader := io.LimitReader(reader, int64(remainingLen))
 
-	protocolVersion, err := ReadByte(remainingReader)
+	protocolVersion, err := readByte(remainingReader)
 	if err != nil {
 		return nil, err
 	}
 
-	hostnameLen, err := ReadUnsignedShort(remainingReader)
+	hostnameLen, err := readUnsignedShort(remainingReader)
 	if err != nil {
 		return nil, err
 	}
-	hostname, err := ReadUTF16BEString(remainingReader, hostnameLen)
+	hostname, err := readUTF16BEString(remainingReader, hostnameLen)
 	if err != nil {
 		return nil, err
 	}
 
-	port, err := ReadUnsignedInt(remainingReader)
+	port, err := readUnsignedInt(remainingReader)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Packet{
-		PacketID: PacketIdLegacyServerListPing,
+		PacketID: LegacyServerListPingID,
 		Length:   0,
 		Data: &LegacyServerListPing{
 			ProtocolVersion: int(protocolVersion),
@@ -122,7 +123,7 @@ func ReadLegacyServerListPing(reader *bufio.Reader, addr net.Addr) (*Packet, err
 	}, nil
 }
 
-func ReadUTF16BEString(reader io.Reader, symbolLen uint16) (string, error) {
+func readUTF16BEString(reader io.Reader, symbolLen uint16) (string, error) {
 	bsUtf16be := make([]byte, symbolLen*2)
 
 	_, err := io.ReadFull(reader, bsUtf16be)
@@ -138,23 +139,23 @@ func ReadUTF16BEString(reader io.Reader, symbolLen uint16) (string, error) {
 	return string(result), nil
 }
 
-func ReadFrame(reader io.Reader, addr net.Addr) (*Frame, error) {
+func readFrame(reader io.Reader, addr net.Addr) (*Frame, error) {
 	var err error
 	frame := &Frame{}
 
-	frame.Length, err = ReadVarInt(reader)
+	frame.length, err = readVarInt(reader)
 	if err != nil {
 		return nil, err
 	}
 	logrus.WithFields(logrus.Fields{
 		"client": addr,
-		"length": frame.Length,
+		"length": frame.length,
 	}).Trace("read frame length")
 
-	frame.Payload = make([]byte, frame.Length)
+	frame.payload = make([]byte, frame.length)
 	total := 0
-	for total < frame.Length {
-		readIntoThis := frame.Payload[total:]
+	for total < frame.length {
+		readIntoThis := frame.payload[total:]
 		n, err := reader.Read(readIntoThis)
 		if err != nil {
 			if err != io.EOF {
@@ -179,7 +180,7 @@ func ReadFrame(reader io.Reader, addr net.Addr) (*Frame, error) {
 	return frame, nil
 }
 
-func ReadVarInt(reader io.Reader) (int, error) {
+func readVarInt(reader io.Reader) (int, error) {
 	b := make([]byte, 1)
 	var numRead uint = 0
 	result := 0
@@ -204,8 +205,8 @@ func ReadVarInt(reader io.Reader) (int, error) {
 	return 0, errors.New("VarInt is too big")
 }
 
-func ReadString(reader io.Reader) (string, error) {
-	length, err := ReadVarInt(reader)
+func readString(reader io.Reader) (string, error) {
+	length, err := readVarInt(reader)
 	if err != nil {
 		return "", err
 	}
@@ -226,17 +227,16 @@ func ReadString(reader io.Reader) (string, error) {
 	return strBuilder.String(), nil
 }
 
-func ReadByte(reader io.Reader) (byte, error) {
+func readByte(reader io.Reader) (byte, error) {
 	buf := make([]byte, 1)
 	_, err := reader.Read(buf)
 	if err != nil {
 		return 0, err
-	} else {
-		return buf[0], nil
 	}
+	return buf[0], nil
 }
 
-func ReadUnsignedShort(reader io.Reader) (uint16, error) {
+func readUnsignedShort(reader io.Reader) (uint16, error) {
 	var value uint16
 	err := binary.Read(reader, binary.BigEndian, &value)
 	if err != nil {
@@ -245,7 +245,7 @@ func ReadUnsignedShort(reader io.Reader) (uint16, error) {
 	return value, nil
 }
 
-func ReadUnsignedInt(reader io.Reader) (uint32, error) {
+func readUnsignedInt(reader io.Reader) (uint32, error) {
 	var value uint32
 	err := binary.Read(reader, binary.BigEndian, &value)
 	if err != nil {
@@ -254,6 +254,7 @@ func ReadUnsignedInt(reader io.Reader) (uint32, error) {
 	return value, nil
 }
 
+// ReadHandshake reads a Handshake packet from the given data.
 func ReadHandshake(data interface{}) (*Handshake, error) {
 
 	dataBytes, ok := data.([]byte)
@@ -265,22 +266,22 @@ func ReadHandshake(data interface{}) (*Handshake, error) {
 	buffer := bytes.NewBuffer(dataBytes)
 	var err error
 
-	handshake.ProtocolVersion, err = ReadVarInt(buffer)
+	handshake.ProtocolVersion, err = readVarInt(buffer)
 	if err != nil {
 		return nil, err
 	}
 
-	handshake.ServerAddress, err = ReadString(buffer)
+	handshake.ServerAddress, err = readString(buffer)
 	if err != nil {
 		return nil, err
 	}
 
-	handshake.ServerPort, err = ReadUnsignedShort(buffer)
+	handshake.ServerPort, err = readUnsignedShort(buffer)
 	if err != nil {
 		return nil, err
 	}
 
-	nextState, err := ReadVarInt(buffer)
+	nextState, err := readVarInt(buffer)
 	if err != nil {
 		return nil, err
 	}

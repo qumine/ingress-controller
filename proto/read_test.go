@@ -28,7 +28,7 @@ func TestReadVarInt(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			result, err := ReadVarInt(bytes.NewBuffer(tt.Input))
+			result, err := readVarInt(bytes.NewBuffer(tt.Input))
 			require.NoError(t, err)
 
 			assert.Equal(t, tt.Expected, result)
