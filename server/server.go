@@ -231,7 +231,7 @@ func (server *Server) relay(dst net.Conn, src net.Conn, errors chan<- error, dir
 		"direction": direction,
 	}).Debug("relaying connection")
 
-	bytes, err := copyBuffer(dst, src, direction, route)
+	bytes, err := io.Copy(dst, src)
 	logrus.WithFields(logrus.Fields{
 		"dst":       dst.RemoteAddr(),
 		"src":       src.RemoteAddr(),
@@ -244,58 +244,4 @@ func (server *Server) relay(dst net.Conn, src net.Conn, errors chan<- error, dir
 	} else {
 		errors <- io.EOF
 	}
-}
-
-// copyBuffer is the actual implementation of Copy and CopyBuffer.
-// if buf is nil, one is allocated.
-//
-// --------------------------------------------
-// This is slightly modified for better metrics
-// --------------------------------------------
-func copyBuffer(dst io.Writer, src io.Reader, direction string, route string) (written int64, err error) {
-	// If the reader has a WriteTo method, use it to do the copy.
-	// Avoids an allocation and a copy.
-	if wt, ok := src.(io.WriterTo); ok {
-		return wt.WriteTo(dst)
-	}
-	// Similarly, if the writer has a ReadFrom method, use it to do the copy.
-	if rt, ok := dst.(io.ReaderFrom); ok {
-		return rt.ReadFrom(src)
-	}
-
-	size := 32 * 1024
-	if l, ok := src.(*io.LimitedReader); ok && int64(size) > l.N {
-		if l.N < 1 {
-			size = 1
-		} else {
-			size = int(l.N)
-		}
-	}
-	buf := make([]byte, size)
-
-	for {
-		nr, er := src.Read(buf)
-		if nr > 0 {
-			nw, ew := dst.Write(buf[0:nr])
-			metricsBytesTotal.With(prometheus.Labels{"direction": direction, "route": route}).Add(float64(nw))
-			if nw > 0 {
-				written += int64(nw)
-			}
-			if ew != nil {
-				err = ew
-				break
-			}
-			if nr != nw {
-				err = io.ErrShortWrite
-				break
-			}
-		}
-		if er != nil {
-			if er != io.EOF {
-				err = er
-			}
-			break
-		}
-	}
-	return written, err
 }
