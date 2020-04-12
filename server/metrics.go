@@ -6,7 +6,7 @@ import (
 
 var (
 	metricsConnectionsTotal = prometheus.NewCounterVec(
-		prometheus.GaugeOpts{
+		prometheus.CounterOpts{
 			Name: "qumine_ingress_connections_total",
 			Help: "The total connections count",
 		},
