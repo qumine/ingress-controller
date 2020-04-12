@@ -25,6 +25,7 @@ var (
 	helpFlag    bool
 	versionFlag bool
 	debugFlag   bool
+	traceFlag   bool
 
 	kubeConfig string
 
@@ -39,6 +40,7 @@ func init() {
 	flag.BoolVar(&helpFlag, "help", false, "Show this page")
 	flag.BoolVar(&versionFlag, "version", false, "Show the current version")
 	flag.BoolVar(&debugFlag, "debug", false, "Enable debugging log level")
+	flag.BoolVar(&traceFlag, "trace", false, "Enable trace log level")
 
 	flag.StringVar(&kubeConfig, "kube-config", "", "Path of the kube config file to use")
 
@@ -61,6 +63,9 @@ func main() {
 
 	if debugFlag {
 		enableDebug()
+	}
+	if debugFlag {
+		enableTrace()
 	}
 
 	api := api.NewAPI(apiHost, apiPort)
@@ -93,4 +98,9 @@ func showVersion() {
 func enableDebug() {
 	logrus.SetLevel(logrus.DebugLevel)
 	logrus.Debug("debugging enabled")
+}
+
+func enableTrace() {
+	logrus.SetLevel(logrus.TraceLevel)
+	logrus.Debug("tracing enabled")
 }
