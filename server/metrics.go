@@ -5,10 +5,10 @@ import (
 )
 
 var (
-	metricsConnectionsTotal = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "qumine_ingress_connections_total",
-			Help: "The total connections count",
+	metricsConnections = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "qumine_ingress_connections",
+			Help: "The amount of active connections",
 		},
 		[]string{"route"},
 	)
@@ -29,7 +29,7 @@ var (
 )
 
 func init() {
-	prometheus.MustRegister(metricsConnectionsTotal)
+	prometheus.MustRegister(metricsConnections)
 	prometheus.MustRegister(metricsErrorsTotal)
 	prometheus.MustRegister(metricsBytesTotal)
 }

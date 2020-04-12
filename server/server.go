@@ -163,7 +163,8 @@ func (server *Server) findAndConnectBackend(context context.Context, client net.
 		metricsErrorsTotal.With(prometheus.Labels{"error": "upstream-unavailable"}).Inc()
 		return
 	}
-	metricsConnectionsTotal.With(prometheus.Labels{"route": route}).Inc()
+	defer metricsConnections.With(prometheus.Labels{"route": route}).Dec()
+	metricsConnections.With(prometheus.Labels{"route": route}).Inc()
 	logrus.WithFields(logrus.Fields{
 		"client":   client.RemoteAddr(),
 		"upstream": upstream.RemoteAddr(),
