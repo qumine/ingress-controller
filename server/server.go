@@ -23,6 +23,9 @@ var (
 
 // Server represents the server
 type Server struct {
+	// Status is the current status of the server.
+	Status string
+	// Addr is the current address of the server.
 	Addr  string
 	state proto.State
 }
@@ -50,10 +53,12 @@ func (server *Server) Start(context context.Context) {
 
 func (server *Server) acceptConnections(context context.Context, listener net.Listener) {
 	defer listener.Close()
+	server.Status = "up"
 
 	for {
 		select {
 		case <-context.Done():
+			server.Status = "down"
 			return
 		default:
 			connection, err := listener.Accept()

@@ -24,6 +24,9 @@ const (
 
 // K8S is a watcher for kubernetes
 type K8S struct {
+	// Status is the current status of the K8S watcher.
+	Status string
+
 	config *rest.Config
 	stop   chan struct{}
 }
@@ -106,9 +109,11 @@ func (k8s *K8S) Start(context context.Context) {
 	)
 
 	go controller.Run(k8s.stop)
+	k8s.Status = "up"
 	for {
 		select {
 		case <-context.Done():
+			k8s.Status = "down"
 			return
 		}
 	}

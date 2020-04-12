@@ -74,7 +74,7 @@ func main() {
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 
 	go k8s.Start(context)
-	go api.Start(context)
+	go api.Start(context, k8s, server)
 	go server.Start(context)
 
 	<-c

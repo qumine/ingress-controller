@@ -12,7 +12,7 @@ Kubernetes ingress controller for minecraft servers
 - [x] Basic routing of minecraft clients based on hostnames
 - [x] Basic Logging
 - [x] Metrics (Prometheus)
-- [ ] Healthchecks for Ingress
+- [x] Healthchecks for Ingress
 - [ ] Healthchecks for Upstreams
 - [ ] Custom error Handling for if the upstream is not available (Status response?)
 - [ ] Frontend to quickly see all upstreams
