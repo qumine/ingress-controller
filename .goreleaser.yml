@@ -28,7 +28,8 @@ archives:
 snapshot:
   name_template: SNAPSHOT-{{ .Commit }}
 dockers:
-  - image_templates:
+  - dockerfile: build/package/Dockerfile
+    image_templates:
       - "quhive/qumine-ingress:latest"
       - "quhive/qumine-ingress:{{.Tag}}"
     goos: linux

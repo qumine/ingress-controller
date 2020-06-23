@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/quhive/qumine-ingress/api"
-	"github.com/quhive/qumine-ingress/k8s"
-	"github.com/quhive/qumine-ingress/server"
+	"github.com/quhive/qumine-ingress/internal/api"
+	"github.com/quhive/qumine-ingress/internal/k8s"
+	"github.com/quhive/qumine-ingress/internal/server"
 
 	"github.com/sirupsen/logrus"
 )
@@ -29,9 +29,6 @@ var (
 
 	kubeConfig string
 
-	apiHost string
-	apiPort int
-
 	host string
 	port int
 )
@@ -43,9 +40,6 @@ func init() {
 	flag.BoolVar(&traceFlag, "trace", false, "Enable trace log level")
 
 	flag.StringVar(&kubeConfig, "kube-config", "", "Path of the kube config file to use")
-
-	flag.StringVar(&apiHost, "api-host", "0.0.0.0", "Address the rest api will listen on")
-	flag.IntVar(&apiPort, "api-port", 8080, "Port the rest api will listen on")
 
 	flag.StringVar(&host, "host", "0.0.0.0", "Address the server will listen on")
 	flag.IntVar(&port, "port", 25565, "Port the server will listen on")
@@ -68,7 +62,7 @@ func main() {
 		enableTrace()
 	}
 
-	api := api.NewAPI(apiHost, apiPort)
+	api := api.NewAPI()
 	k8s := k8s.NewK8S(kubeConfig)
 	server := server.NewServer(host, port)
 

@@ -3,14 +3,12 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"net"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/quhive/qumine-ingress/k8s"
-	"github.com/quhive/qumine-ingress/server"
+	"github.com/quhive/qumine-ingress/internal/k8s"
+	"github.com/quhive/qumine-ingress/internal/server"
 	"github.com/sirupsen/logrus"
 )
 
@@ -26,19 +24,13 @@ type API struct {
 }
 
 // NewAPI creates a new api instance with the given host and port
-func NewAPI(host string, port int) *API {
+func NewAPI() *API {
 	router := mux.NewRouter()
 	router.Path("/healthz").Methods("GET").HandlerFunc(getHealthz)
 	router.Path("/metrics").Methods("GET").Handler(promhttp.Handler())
-
-	apiRouter := router.Path("/routes").Subrouter()
-	apiRouter.Use(metricsMiddleware)
-	apiRouter.Use(loggingMiddleware)
-	apiRouter.Path("").Methods("GET").HandlerFunc(getRoutes)
-
 	return &API{
 		httpServer: &http.Server{
-			Addr:    net.JoinHostPort(host, strconv.Itoa(port)),
+			Addr:    "0.0.0.0:8080",
 			Handler: router,
 		},
 		router: router,
@@ -65,17 +57,6 @@ func (api *API) Start(context context.Context, k8s *k8s.K8S, server *server.Serv
 			return
 		}
 	}
-}
-
-func getRoutes(writer http.ResponseWriter, request *http.Request) {
-	mappings := server.GetMappings()
-	bytes, err := json.Marshal(mappings)
-	if err != nil {
-		logrus.WithError(err).Error("marchaling mappings failed")
-		writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	writer.Write(bytes)
 }
 
 func getHealthz(writer http.ResponseWriter, request *http.Request) {

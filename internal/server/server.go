@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/quhive/qumine-ingress/proto"
+	"github.com/quhive/qumine-ingress/internal/proto"
 	"github.com/sirupsen/logrus"
 )
 
