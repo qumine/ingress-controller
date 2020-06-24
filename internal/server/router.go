@@ -7,39 +7,27 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var mappings = make(map[string]string)
+var routes = make(map[string]string)
 
-// GetMappings gets all mappings
-func GetMappings() map[string]string {
-	return mappings
+// AddRoute adds a new route to the routing map.
+func AddRoute(hostname string, backend string) {
+	routes[hostname] = backend
+	logrus.WithField("hostname", hostname).WithField("upstream", backend).Info("route added")
 }
 
-// CreateRoute creates a new route
-func CreateRoute(hostname string, backend string) {
-	hostname = strings.ToLower(hostname)
-	logrus.WithFields(logrus.Fields{
-		"hostname": hostname,
-		"upstream": backend,
-	}).Info("route created")
-	mappings[hostname] = backend
-}
-
-// ReadRoute reads a route by an address
-func ReadRoute(address string) (string, error) {
+// FindRoute finds a route by its address or throws an error.
+func FindRoute(address string) (string, error) {
 	addressParts := strings.Split(address, "\x00")
 	hostname := strings.ToLower(addressParts[0])
 
-	if route, exists := mappings[hostname]; exists {
+	if route, exists := routes[hostname]; exists {
 		return route, nil
 	}
-	return "", errors.New("no matching route")
+	return "", errors.New("route not found")
 }
 
-// DeleteRoute deletes a route by its hostname
-func DeleteRoute(hostname string) {
-	hostname = strings.ToLower(hostname)
-	logrus.WithFields(logrus.Fields{
-		"hostname": hostname,
-	}).Info("route deleted")
-	delete(mappings, hostname)
+// RemoveRoute removes a route from the routing map.
+func RemoveRoute(hostname string) {
+	delete(routes, hostname)
+	logrus.WithField("hostname", hostname).Info("route removed")
 }

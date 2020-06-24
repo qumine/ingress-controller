@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -40,16 +39,12 @@ func NewAPI() *API {
 // Start the Api
 func (api *API) Start(context context.Context, k8s *k8s.K8S, server *server.Server) {
 	defer api.httpServer.Close()
-	logrus.WithFields(logrus.Fields{
-		"addr": api.httpServer.Addr,
-	}).Info("starting api...")
+	logrus.WithField("addr", api.httpServer.Addr).Info("starting api...")
 
 	k = k8s
 	s = server
 
-	go logrus.WithError(api.httpServer.ListenAndServe()).WithFields(logrus.Fields{
-		"addr": api.httpServer.Addr,
-	}).Fatal("api failed to start")
+	go logrus.WithError(api.httpServer.ListenAndServe()).Fatal("api failed to start")
 
 	for {
 		select {
@@ -64,31 +59,13 @@ func getHealthz(writer http.ResponseWriter, request *http.Request) {
 	details["k8s"] = k.Status
 	details["server"] = s.Status
 
-	status := "up"
-	for key := range details {
-		switch details[key] {
-		case "up":
-			continue
-		default:
-			status = "down"
-			break
-		}
-	}
-
-	bytes, err := json.Marshal(&healthz{
-		Status:  status,
-		Details: details,
-	})
-	if err != nil {
-		logrus.WithError(err).Error("marchaling healthz failed")
-		writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	if status == "down" {
+	if k.Status == "up" && s.Status == "up" {
+		writer.WriteHeader(http.StatusOK)
+		writer.Write([]byte{})
+	} else {
 		writer.WriteHeader(http.StatusServiceUnavailable)
+		writer.Write([]byte{})
 	}
-
-	writer.Write(bytes)
 }
 
 type healthz struct {

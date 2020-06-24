@@ -39,9 +39,7 @@ func NewServer(host string, port int) *Server {
 
 // Start the server
 func (server *Server) Start(context context.Context) {
-	logrus.WithFields(logrus.Fields{
-		"addr": server.Addr,
-	}).Info("starting server...")
+	logrus.WithField("addr", server.Addr).Info("starting server...")
 
 	listener, err := net.Listen("tcp", server.Addr)
 	if err != nil {
@@ -73,28 +71,19 @@ func (server *Server) acceptConnections(context context.Context, listener net.Li
 
 func (server *Server) handleConnection(context context.Context, client net.Conn) {
 	defer client.Close()
-	defer logrus.WithFields(logrus.Fields{
-		"client": client.RemoteAddr(),
-	}).Info("closed client connection")
-
-	logrus.WithFields(logrus.Fields{
-		"client": client.RemoteAddr(),
-	}).Info("inbound client connection")
+	defer logrus.WithField("client", client.RemoteAddr()).Info("closed client connection")
+	logrus.WithField("client", client.RemoteAddr()).Info("inbound client connection")
 
 	buffer := new(bytes.Buffer)
 	reader := io.TeeReader(client, buffer)
 
 	if err := client.SetReadDeadline(time.Now().Add(handshakeTimeout)); err != nil {
-		logrus.WithError(err).WithFields(logrus.Fields{
-			"client": client.RemoteAddr(),
-		}).Error("setting deadline failed")
+		logrus.WithError(err).WithField("client", client.RemoteAddr()).Error("setting deadline failed")
 		return
 	}
 	packet, err := proto.ReadPacket(reader, client.RemoteAddr(), server.state)
 	if err != nil {
-		logrus.WithError(err).WithFields(logrus.Fields{
-			"client": client.RemoteAddr(),
-		}).Error("reading packet failed")
+		logrus.WithError(err).WithField("client", client.RemoteAddr()).Error("reading packet failed")
 		return
 	}
 	logrus.WithFields(logrus.Fields{
@@ -106,9 +95,8 @@ func (server *Server) handleConnection(context context.Context, client net.Conn)
 	if packet.PacketID == proto.HandshakeID {
 		handshake, err := proto.ReadHandshake(packet.Data)
 		if err != nil {
-			logrus.WithError(err).WithFields(logrus.Fields{
-				"client": client.RemoteAddr(),
-			}).Error("decoding handshake packet failed")
+			logrus.WithError(err).WithField("client", client.RemoteAddr()).Error("decoding handshake packet failed")
+			metricsErrorsTotal.With(prometheus.Labels{"error": "DecodeHandshakeFailed"}).Inc()
 			return
 		}
 		logrus.WithFields(logrus.Fields{
@@ -121,9 +109,8 @@ func (server *Server) handleConnection(context context.Context, client net.Conn)
 	} else if packet.PacketID == proto.LegacyServerListPingID {
 		handshake, ok := packet.Data.(*proto.LegacyServerListPing)
 		if !ok {
-			logrus.WithError(err).WithFields(logrus.Fields{
-				"client": client.RemoteAddr(),
-			}).Error("decoding legacyServerListPing packet failed")
+			logrus.WithError(err).WithField("client", client.RemoteAddr()).Error("decoding legacyServerListPing packet failed")
+			metricsErrorsTotal.With(prometheus.Labels{"error": "DecodeLegacyServerListPingFailed"}).Inc()
 			return
 		}
 		logrus.WithFields(logrus.Fields{
@@ -143,10 +130,10 @@ func (server *Server) handleConnection(context context.Context, client net.Conn)
 }
 
 func (server *Server) findAndConnectBackend(context context.Context, client net.Conn, preReadContent io.Reader, hostname string, packet string) {
-	route, err := ReadRoute(hostname)
+	route, err := FindRoute(hostname)
 	if err != nil {
 		logrus.WithError(err).Warn("no matching route found")
-		metricsErrorsTotal.With(prometheus.Labels{"error": "no-route"}).Inc()
+		metricsErrorsTotal.With(prometheus.Labels{"error": "NotFound"}).Inc()
 		return
 	}
 	logrus.WithFields(logrus.Fields{
@@ -160,7 +147,7 @@ func (server *Server) findAndConnectBackend(context context.Context, client net.
 			"client": client.RemoteAddr(),
 			"route":  route,
 		}).Error("connecting to upstream failed")
-		metricsErrorsTotal.With(prometheus.Labels{"error": "upstream-unavailable"}).Inc()
+		metricsErrorsTotal.With(prometheus.Labels{"error": "UpstreamConnectionFailed"}).Inc()
 		return
 	}
 	defer metricsConnections.With(prometheus.Labels{"route": route}).Dec()
@@ -200,15 +187,15 @@ func (server *Server) relayConnections(context context.Context, route string, cl
 	defer logrus.WithFields(logrus.Fields{
 		"client":   client.RemoteAddr(),
 		"upstream": upstream.RemoteAddr(),
-	}).Info("closed upstream connection")
+	}).Info("stopped relaying connections")
+	logrus.WithFields(logrus.Fields{
+		"client":   client.RemoteAddr(),
+		"upstream": upstream.RemoteAddr(),
+	}).Debug("relaying connections")
 
 	errors := make(chan error, 2)
 	go server.relay(upstream, client, errors, "upstream", route)
 	go server.relay(client, upstream, errors, "downstream", route)
-	logrus.WithFields(logrus.Fields{
-		"client":   client.RemoteAddr(),
-		"upstream": upstream.RemoteAddr(),
-	}).Debug("relayed connection to upstream")
 
 	select {
 	case err := <-errors:
@@ -237,7 +224,7 @@ func (server *Server) relay(dst net.Conn, src net.Conn, errors chan<- error, dir
 		"src":       src.RemoteAddr(),
 		"direction": direction,
 		"bytes":     bytes,
-	}).Debug("stopped connection relay")
+	}).Debug("stopped relaying connection")
 
 	if err != nil {
 		errors <- err
