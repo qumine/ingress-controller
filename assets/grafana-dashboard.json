@@ -32,6 +32,7 @@
   "annotations": {
     "list": [
       {
+        "$$hashKey": "object:36",
         "builtIn": 1,
         "datasource": "-- Grafana --",
         "enable": true,
@@ -188,8 +189,9 @@
           "refId": "A"
         },
         {
-          "expr": "sum(qumine_ingress_connections) by (kubernetes_pod_name)",
-          "legendFormat": "{{kubernetes_pod_name}}",
+          "expr": "sum(qumine_ingress_connections) by (pod)",
+          "interval": "",
+          "legendFormat": "{{pod}}",
           "refId": "B"
         }
       ],
@@ -522,5 +524,5 @@
   "variables": {
     "list": []
   },
-  "version": 1
+  "version": 2
 }
