@@ -1,9 +1,8 @@
 module github.com/quhive/qumine-ingress
 
-go 1.14
+go 1.15
 
 require (
-	github.com/evanphx/json-patch v4.2.0+incompatible // indirect
 	github.com/gorilla/mux v1.7.4
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.7.1
