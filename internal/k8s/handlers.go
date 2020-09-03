@@ -8,6 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/quhive/qumine-ingress/internal/metrics"
 	"github.com/quhive/qumine-ingress/internal/routing"
+	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -43,13 +44,14 @@ func add(obj interface{}) error {
 	}
 
 	portname := "minecraft"
-	if p, exists := service.Annotations[AnnotationHostname]; exists {
+	if p, exists := service.Annotations[AnnotationPortname]; exists {
 		portname = p
 	}
 	hostname := "localhost"
 	if h, exists := service.Annotations[AnnotationHostname]; exists {
 		hostname = h
 	}
+	logrus.WithField("portname", portname).WithField("hostname", hostname).Debug("add route")
 
 	for _, p := range service.Spec.Ports {
 		if p.Name == portname {
