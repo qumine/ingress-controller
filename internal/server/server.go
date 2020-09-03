@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/quhive/qumine-ingress/internal/metrics"
 	"github.com/quhive/qumine-ingress/internal/proto"
+	"github.com/quhive/qumine-ingress/internal/routing"
 	"github.com/sirupsen/logrus"
 )
 
@@ -96,7 +98,7 @@ func (server *Server) handleConnection(context context.Context, client net.Conn)
 		handshake, err := proto.ReadHandshake(packet.Data)
 		if err != nil {
 			logrus.WithError(err).WithField("client", client.RemoteAddr()).Error("decoding handshake packet failed")
-			metricsErrorsTotal.With(prometheus.Labels{"error": "DecodeHandshakeFailed"}).Inc()
+			metrics.ErrorsTotal.With(prometheus.Labels{"error": "DecodeHandshakeFailed"}).Inc()
 			return
 		}
 		logrus.WithFields(logrus.Fields{
@@ -110,7 +112,7 @@ func (server *Server) handleConnection(context context.Context, client net.Conn)
 		handshake, ok := packet.Data.(*proto.LegacyServerListPing)
 		if !ok {
 			logrus.WithError(err).WithField("client", client.RemoteAddr()).Error("decoding legacyServerListPing packet failed")
-			metricsErrorsTotal.With(prometheus.Labels{"error": "DecodeLegacyServerListPingFailed"}).Inc()
+			metrics.ErrorsTotal.With(prometheus.Labels{"error": "DecodeLegacyServerListPingFailed"}).Inc()
 			return
 		}
 		logrus.WithFields(logrus.Fields{
@@ -130,10 +132,10 @@ func (server *Server) handleConnection(context context.Context, client net.Conn)
 }
 
 func (server *Server) findAndConnectBackend(context context.Context, client net.Conn, preReadContent io.Reader, hostname string, packet string) {
-	route, err := FindRoute(hostname)
+	route, err := routing.FindBackend(hostname)
 	if err != nil {
 		logrus.WithError(err).Warn("no matching route found")
-		metricsErrorsTotal.With(prometheus.Labels{"error": "NotFound"}).Inc()
+		metrics.ErrorsTotal.With(prometheus.Labels{"error": "NotFound"}).Inc()
 		return
 	}
 	logrus.WithFields(logrus.Fields{
@@ -147,11 +149,11 @@ func (server *Server) findAndConnectBackend(context context.Context, client net.
 			"client": client.RemoteAddr(),
 			"route":  route,
 		}).Error("connecting to upstream failed")
-		metricsErrorsTotal.With(prometheus.Labels{"error": "UpstreamConnectionFailed"}).Inc()
+		metrics.ErrorsTotal.With(prometheus.Labels{"error": "UpstreamConnectionFailed"}).Inc()
 		return
 	}
-	defer metricsConnections.With(prometheus.Labels{"route": route}).Dec()
-	metricsConnections.With(prometheus.Labels{"route": route}).Inc()
+	defer metrics.Connections.With(prometheus.Labels{"route": route}).Dec()
+	metrics.Connections.With(prometheus.Labels{"route": route}).Inc()
 	logrus.WithFields(logrus.Fields{
 		"client":   client.RemoteAddr(),
 		"upstream": upstream.RemoteAddr(),

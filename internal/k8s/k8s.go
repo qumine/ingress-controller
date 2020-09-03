@@ -2,10 +2,7 @@ package k8s
 
 import (
 	"context"
-	"net"
-	"strconv"
 
-	"github.com/quhive/qumine-ingress/internal/server"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -77,34 +74,9 @@ func (k8s *K8S) Start(context context.Context) {
 		&v1.Service{},
 		0,
 		cache.ResourceEventHandlerFuncs{
-			AddFunc: func(obj interface{}) {
-				service := extractRoutableService(obj)
-				if service != nil {
-					if service.hostname != "" {
-						metricsRoutes.Inc()
-						server.AddRoute(service.hostname, service.backend)
-					}
-				}
-			},
-			DeleteFunc: func(obj interface{}) {
-				service := extractRoutableService(obj)
-				if service != nil {
-					if service.hostname != "" {
-						metricsRoutes.Dec()
-						server.RemoveRoute(service.hostname)
-					}
-				}
-			},
-			UpdateFunc: func(oldObj, newObj interface{}) {
-				oldService := extractRoutableService(oldObj)
-				newService := extractRoutableService(newObj)
-				if oldService != nil && newService != nil {
-					if oldService.hostname != "" && newService.hostname != "" {
-						server.RemoveRoute(oldService.hostname)
-						server.AddRoute(newService.hostname, newService.backend)
-					}
-				}
-			},
+			AddFunc:    onAdd,
+			DeleteFunc: onDelete,
+			UpdateFunc: onUpdate,
 		},
 	)
 
@@ -121,43 +93,4 @@ func (k8s *K8S) Start(context context.Context) {
 
 func (k8s *K8S) close() {
 	k8s.stop <- struct{}{}
-}
-
-// Service represents the service definition from kubernetes.
-type Service struct {
-	hostname string
-	backend  string
-}
-
-func extractRoutableService(obj interface{}) *Service {
-	service, ok := obj.(*v1.Service)
-	if !ok {
-		return nil
-	}
-
-	portname := "minecraft"
-	if p, exists := service.Annotations[AnnotationHostname]; exists {
-		portname = p
-	}
-
-	if hostname, exists := service.Annotations[AnnotationHostname]; exists {
-		return buildDetails(service, hostname, portname)
-	}
-
-	return nil
-}
-
-func buildDetails(service *v1.Service, hostname string, portname string) *Service {
-	clusterIP := service.Spec.ClusterIP
-	port := "25565"
-	for _, p := range service.Spec.Ports {
-		if p.Name == portname {
-			port = strconv.Itoa(int(p.Port))
-		}
-	}
-	rs := &Service{
-		hostname: hostname,
-		backend:  net.JoinHostPort(clusterIP, port),
-	}
-	return rs
 }
