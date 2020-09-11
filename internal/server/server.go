@@ -226,7 +226,7 @@ func (server *Server) relay(dst net.Conn, src net.Conn, errors chan<- error, dir
 		"src":       src.RemoteAddr(),
 		"direction": direction,
 		"bytes":     bytes,
-	}).Debug("stopped relaying connection")
+	}).Debug("stopped relaying connectioxn")
 
 	if err != nil {
 		errors <- err

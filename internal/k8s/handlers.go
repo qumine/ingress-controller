@@ -1,7 +1,6 @@
 package k8s
 
 import (
-	"errors"
 	"net"
 	"strconv"
 
@@ -13,34 +12,10 @@ import (
 )
 
 func onAdd(obj interface{}) {
-	if err := add(obj); err != nil {
-		return
-	}
-	metrics.Routes.Inc()
-	return
-}
-
-func onDelete(obj interface{}) {
-	if err := remove(obj); err != nil {
-		return
-	}
-	metrics.Routes.Dec()
-}
-
-func onUpdate(oldObj, newObj interface{}) {
-	if err := remove(oldObj); err != nil {
-		return
-	}
-	if err := add(newObj); err != nil {
-		return
-	}
-}
-
-func add(obj interface{}) error {
 	service, ok := obj.(*v1.Service)
 	if !ok {
 		metrics.ErrorsTotal.With(prometheus.Labels{"error": "InternalError"}).Inc()
-		return errors.New("unable to convert")
+		return
 	}
 
 	portname := "minecraft"
@@ -56,20 +31,49 @@ func add(obj interface{}) error {
 	for _, p := range service.Spec.Ports {
 		if p.Name == portname {
 			routing.Add(string(service.UID), routing.NewRoute(hostname, net.JoinHostPort(service.Spec.ClusterIP, strconv.Itoa(int(p.Port)))))
-			return nil
+			return
 		}
 	}
 	metrics.ErrorsTotal.With(prometheus.Labels{"error": "NoMatchingPort"}).Inc()
-	return errors.New("No matching port found")
 }
 
-func remove(obj interface{}) error {
+func onDelete(obj interface{}) {
 	service, ok := obj.(*v1.Service)
 	if !ok {
 		metrics.ErrorsTotal.With(prometheus.Labels{"error": "InternalError"}).Inc()
-		return errors.New("unable to convert")
+		return
 	}
 
 	routing.Remove(string(service.UID))
-	return nil
+}
+
+func onUpdate(oldObj, newObj interface{}) {
+	oldService, ok := newObj.(*v1.Service)
+	if !ok {
+		metrics.ErrorsTotal.With(prometheus.Labels{"error": "InternalError"}).Inc()
+		return
+	}
+	newService, ok := newObj.(*v1.Service)
+	if !ok {
+		metrics.ErrorsTotal.With(prometheus.Labels{"error": "InternalError"}).Inc()
+		return
+	}
+
+	portname := "minecraft"
+	if p, exists := newService.Annotations[AnnotationPortname]; exists {
+		portname = p
+	}
+	hostname := "localhost"
+	if h, exists := newService.Annotations[AnnotationHostname]; exists {
+		hostname = h
+	}
+	logrus.WithField("portname", portname).WithField("hostname", hostname).Debug("add route")
+
+	for _, p := range newService.Spec.Ports {
+		if p.Name == portname {
+			routing.Update(string(oldService.UID), routing.NewRoute(hostname, net.JoinHostPort(newService.Spec.ClusterIP, strconv.Itoa(int(p.Port)))))
+			return
+		}
+	}
+	metrics.ErrorsTotal.With(prometheus.Labels{"error": "NoMatchingPort"}).Inc()
 }
