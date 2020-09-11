@@ -25,6 +25,10 @@ func Update(uid string, route Route) {
 
 // Remove an existing route from the router.
 func Remove(uid string) {
+	if _, ok := routes[uid]; !ok {
+		return
+	}
+
 	delete(routes, uid)
 	logrus.WithField("uid", uid).Info("route removed")
 	metrics.Routes.Dec()
