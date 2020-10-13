@@ -11,5 +11,5 @@ require (
 	golang.org/x/text v0.3.3
 	k8s.io/api v0.19.2
 	k8s.io/apimachinery v0.19.2
-	k8s.io/client-go v0.19.0
+	k8s.io/client-go v0.19.2
 )
