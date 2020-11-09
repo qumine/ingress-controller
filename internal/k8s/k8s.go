@@ -14,9 +14,9 @@ import (
 
 const (
 	// AnnotationHostname is the kubernetes annotation for the hostname to use for the ingress
-	AnnotationHostname = "qumine-ingress.quhive.io/hostname"
+	AnnotationHostname = "ingress.qumine.io/hostname"
 	// AnnotationPortname is the kubernetes annotation for the name of the port to use
-	AnnotationPortname = "qumine-ingress.quhive.io/portname"
+	AnnotationPortname = "ingress.qumine.io/portname"
 )
 
 // K8S is a watcher for kubernetes

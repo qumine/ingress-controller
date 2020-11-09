@@ -1,9 +1,9 @@
 QuMine - Ingress
 ---
-![GitHub Release](https://img.shields.io/github/v/release/quhive/qumine-ingress)
-![GitHub Workflow](https://img.shields.io/github/workflow/status/quhive/qumine-ingress/release)
-[![GoDoc](https://godoc.org/github.com/quhive/QuMine-Ingress?status.svg)](https://godoc.org/github.com/quhive/qumine-Ingress)
-[![Go Report Card](https://goreportcard.com/badge/github.com/quhive/QuMine-Ingress)](https://goreportcard.com/report/github.com/quhive/qumine-Ingress)
+![GitHub Release](https://img.shields.io/github/v/release/qumine/qumine-ingress)
+![GitHub Workflow](https://img.shields.io/github/workflow/status/qumine/qumine-ingress/release)
+[![GoDoc](https://godoc.org/github.com/qumine/QuMine-Ingress?status.svg)](https://godoc.org/github.com/qumine/qumine-Ingress)
+[![Go Report Card](https://goreportcard.com/badge/github.com/qumine/QuMine-Ingress)](https://goreportcard.com/report/github.com/qumine/qumine-Ingress)
 
 Kubernetes ingress controller for minecraft servers
 
@@ -13,16 +13,15 @@ Kubernetes ingress controller for minecraft servers
 - [x] Basic Logging
 - [x] Metrics (Prometheus)
 - [x] Healthchecks for Ingress
-- [ ] Healthchecks for Upstreams
-- [ ] Custom error Handling for if the upstream is not available (Status response?)
-- [ ] Frontend to quickly see all upstreams
+- [ ] Better error handling and responses back to client
+- [ ] API for getting current state of the ingress
 
 # Usage
 
 
 ## Kubernetes
 
-*HELM Charts can be found here: [quhive/charts](https://github.com/quhive/charts)*
+*HELM Charts can be found here: [qumine/charts](https://github.com/qumine/charts)*
 
 ### Ingress
 
@@ -51,8 +50,8 @@ By default the ingress should run fine without customization, but if you need to
 
 ### Upstream Services
 
-To enable a service to be discovered by the ingress it needs to have the ```qumine-ingress.quhive.io/hostname``` annotations.
-Optionaly you can set the ```qumine-ingress.quhive.io/portname``` annotation to define which port will be used for the minecraft connection.
+To enable a service to be discovered by the ingress it needs to have the ```ingress.qumine.io/hostname``` annotations.
+Optionaly you can set the ```ingress.qumine.io/portname``` annotation to define which port will be used for the minecraft connection.
 
 ```yaml
 apiVersion: v1
@@ -60,8 +59,8 @@ kind: Service
 metadata:
   name: example
   annotations:
-    qumine-ingress.quhive.io/hostname: "example"
-    qumine-ingress.quhive.io/portname: "minecraft"
+    ingress.qumine.io/hostname: "example"
+    ingress.qumine.io/portname: "minecraft"
 spec:
   ports:
   - port: 25565

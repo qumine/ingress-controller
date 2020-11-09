@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/quhive/qumine-ingress/internal/metrics"
-	"github.com/quhive/qumine-ingress/internal/routing"
+	"github.com/qumine/qumine-ingress/internal/metrics"
+	"github.com/qumine/qumine-ingress/internal/routing"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 )

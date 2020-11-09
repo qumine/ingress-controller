@@ -1,7 +1,7 @@
 project_name: qumine-ingress
 release:
   github:
-    owner: quhive
+    owner: qumine
     name: qumine-ingress
 before:
   hooks:
@@ -30,8 +30,8 @@ snapshot:
 dockers:
   - dockerfile: build/package/Dockerfile
     image_templates:
-      - "quhive/qumine-ingress:latest"
-      - "quhive/qumine-ingress:{{.Tag}}"
+      - "qumine/qumine-ingress:latest"
+      - "qumine/qumine-ingress:{{.Tag}}"
     goos: linux
     goarch: amd64
 changelog:

@@ -1,4 +1,4 @@
-module github.com/quhive/qumine-ingress
+module github.com/qumine/qumine-ingress
 
 go 1.15
 
