@@ -5,10 +5,9 @@ QuMine - Ingress
 [![GoDoc](https://godoc.org/github.com/qumine/QuMine-Ingress?status.svg)](https://godoc.org/github.com/qumine/qumine-Ingress)
 [![Go Report Card](https://goreportcard.com/badge/github.com/qumine/QuMine-Ingress)](https://goreportcard.com/report/github.com/qumine/qumine-Ingress)
 
-Kubernetes ingress controller for minecraft servers
+Kubernetes ingress controller for routing Minecraft connections based on the requested hostname
 
 # Usage
-
 
 ## Kubernetes
 
