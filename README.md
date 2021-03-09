@@ -7,15 +7,6 @@ QuMine - Ingress
 
 Kubernetes ingress controller for minecraft servers
 
-# Status
-
-- [x] Basic routing of minecraft clients based on hostnames
-- [x] Basic Logging
-- [x] Metrics (Prometheus)
-- [x] Healthchecks for Ingress
-- [ ] Better error handling and responses back to client
-- [ ] API for getting current state of the ingress
-
 # Usage
 
 
