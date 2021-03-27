@@ -1,9 +1,9 @@
 QuMine - Ingress
 ---
-![GitHub Release](https://img.shields.io/github/v/release/qumine/qumine-ingress)
-![GitHub Workflow](https://img.shields.io/github/workflow/status/qumine/qumine-ingress/release)
-[![GoDoc](https://godoc.org/github.com/qumine/QuMine-Ingress?status.svg)](https://godoc.org/github.com/qumine/qumine-Ingress)
-[![Go Report Card](https://goreportcard.com/badge/github.com/qumine/QuMine-Ingress)](https://goreportcard.com/report/github.com/qumine/qumine-Ingress)
+![GitHub Release](https://img.shields.io/github/v/release/qumine/ingress-controller)
+![GitHub Workflow](https://img.shields.io/github/workflow/status/qumine/ingress-controller/release)
+[![GoDoc](https://godoc.org/github.com/qumine/ingress-controller?status.svg)](https://godoc.org/github.com/qumine/ingress-controller)
+[![Go Report Card](https://goreportcard.com/badge/github.com/qumine/ingress-controller)](https://goreportcard.com/report/github.com/qumine/ingress-controller)
 
 Kubernetes ingress controller for routing Minecraft connections based on the requested hostname
 

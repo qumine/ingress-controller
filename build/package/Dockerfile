@@ -5,8 +5,8 @@ FROM scratch
 EXPOSE 80
 EXPOSE 25565
 
-COPY  qumine-ingress qumine-ingress
+COPY  ingress-controller ingress-controller
 COPY --from=passwed /etc/passwd /etc/passwd
 USER nobody
 
-ENTRYPOINT [ "./qumine-ingress" ]
+ENTRYPOINT [ "./ingress-controller" ]

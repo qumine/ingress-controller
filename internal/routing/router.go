@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/qumine/qumine-ingress/internal/metrics"
+	"github.com/qumine/ingress-controller/internal/metrics"
 	"github.com/sirupsen/logrus"
 )
 

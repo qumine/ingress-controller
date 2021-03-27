@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/qumine/qumine-ingress/internal/api"
-	"github.com/qumine/qumine-ingress/internal/k8s"
-	"github.com/qumine/qumine-ingress/internal/server"
+	"github.com/qumine/ingress-controller/internal/api"
+	"github.com/qumine/ingress-controller/internal/k8s"
+	"github.com/qumine/ingress-controller/internal/server"
 
 	"github.com/sirupsen/logrus"
 )

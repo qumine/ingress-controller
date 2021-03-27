@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/qumine/qumine-ingress/internal/metrics"
-	"github.com/qumine/qumine-ingress/internal/proto"
-	"github.com/qumine/qumine-ingress/internal/routing"
+	"github.com/qumine/ingress-controller/internal/metrics"
+	"github.com/qumine/ingress-controller/internal/proto"
+	"github.com/qumine/ingress-controller/internal/routing"
 	"github.com/sirupsen/logrus"
 )
 

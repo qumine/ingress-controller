@@ -486,7 +486,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", container=~\"qumine-ingress.*\", pod=~\"qumine-ingress.*\"}[5m])) by (pod)",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", container=~\"ingress-controller.*\", pod=~\"ingress-controller.*\"}[5m])) by (pod)",
           "interval": "",
           "legendFormat": "{{pod}}",
           "refId": "A"
@@ -553,7 +553,7 @@
         "options": [],
         "query": "label_values(container_memory_usage_bytes, namespace)",
         "refresh": 1,
-        "regex": "qumine-ingress-.*",
+        "regex": "ingress-controller-.*",
         "skipUrlSync": false,
         "sort": 0,
         "tagValuesQuery": "",

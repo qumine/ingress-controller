@@ -1,4 +1,4 @@
-module github.com/qumine/qumine-ingress
+module github.com/qumine/ingress-controller
 
 go 1.16
 
