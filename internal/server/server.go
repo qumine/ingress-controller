@@ -5,13 +5,13 @@ import (
 	"context"
 	"io"
 	"net"
-	"strconv"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/qumine/ingress-controller/internal/metrics"
 	"github.com/qumine/ingress-controller/internal/proto"
 	"github.com/qumine/ingress-controller/internal/routing"
+	"github.com/qumine/ingress-controller/pkg/config"
 	"github.com/sirupsen/logrus"
 )
 
@@ -33,9 +33,9 @@ type Server struct {
 }
 
 // NewServer creates a new server instance with the given host and port
-func NewServer(host string, port int) *Server {
+func NewServer(ingressOptions config.IngressOptions) *Server {
 	return &Server{
-		Addr: net.JoinHostPort(host, strconv.Itoa(port)),
+		Addr: ingressOptions.GetAddress(),
 	}
 }
 

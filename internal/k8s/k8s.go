@@ -3,6 +3,7 @@ package k8s
 import (
 	"context"
 
+	"github.com/qumine/ingress-controller/pkg/config"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -29,12 +30,12 @@ type K8S struct {
 }
 
 // NewK8S creates a new k8s instance
-func NewK8S(kubeConfig string) *K8S {
+func NewK8S(k8sOptions config.K8SOptions) *K8S {
 	k8s := &K8S{}
 	k8s.stop = make(chan struct{}, 1)
 
-	if kubeConfig != "" {
-		config, err := clientcmd.BuildConfigFromFlags("", kubeConfig)
+	if k8sOptions.KubeConfig != "" {
+		config, err := clientcmd.BuildConfigFromFlags("", k8sOptions.KubeConfig)
 		if err != nil {
 			logrus.WithError(err).Fatal("unable to load kube-config")
 		}

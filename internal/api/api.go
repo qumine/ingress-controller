@@ -7,6 +7,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/qumine/ingress-controller/internal/k8s"
 	"github.com/qumine/ingress-controller/internal/server"
+	"github.com/qumine/ingress-controller/pkg/config"
 	"github.com/sirupsen/logrus"
 )
 
@@ -21,13 +22,13 @@ type API struct {
 }
 
 // NewAPI creates a new api instance with the given host and port
-func NewAPI() *API {
+func NewAPI(apiOptions config.APIOptions) *API {
 	r := http.NewServeMux()
 	r.HandleFunc("/healthz", getHealthz)
 	r.Handle("/metrics", promhttp.Handler())
 	return &API{
 		httpServer: &http.Server{
-			Addr:    "0.0.0.0:8080",
+			Addr:    apiOptions.GetAddress(),
 			Handler: r,
 		},
 	}
