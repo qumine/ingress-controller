@@ -5,45 +5,39 @@ import (
 	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/qumine/ingress-controller/internal/ingress"
 	"github.com/qumine/ingress-controller/internal/k8s"
-	"github.com/qumine/ingress-controller/internal/server"
 	"github.com/qumine/ingress-controller/pkg/config"
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	k *k8s.K8S
-	s *server.Server
-)
-
 // API represents the api server
 type API struct {
-	httpServer *http.Server
+	addr string
+	k8s  *k8s.K8S
+	ing  *ingress.Ingress
 }
 
 // NewAPI creates a new api instance with the given host and port
-func NewAPI(apiOptions config.APIOptions) *API {
-	r := http.NewServeMux()
-	r.HandleFunc("/healthz", getHealthz)
-	r.Handle("/metrics", promhttp.Handler())
+func NewAPI(apiOptions config.APIOptions, k8s *k8s.K8S, ing *ingress.Ingress) *API {
 	return &API{
-		httpServer: &http.Server{
-			Addr:    apiOptions.GetAddress(),
-			Handler: r,
-		},
+		addr: apiOptions.GetAddress(),
+		k8s:  k8s,
+		ing:  ing,
 	}
 }
 
 // Start the Api
-func (api *API) Start(context context.Context, k8s *k8s.K8S, server *server.Server) {
-	defer api.httpServer.Close()
-	logrus.WithField("addr", api.httpServer.Addr).Info("starting api...")
+func (api *API) Start(context context.Context) {
+	logrus.WithFields(logrus.Fields{
+		"addr": api.addr,
+	}).Debug("Starting API")
 
-	k = k8s
-	s = server
+	go api.startHttpServer()
 
-	go logrus.WithError(api.httpServer.ListenAndServe()).Fatal("api failed to start")
-
+	logrus.WithFields(logrus.Fields{
+		"addr": api.addr,
+	}).Info("Started API")
 	for {
 		select {
 		case <-context.Done():
@@ -52,21 +46,19 @@ func (api *API) Start(context context.Context, k8s *k8s.K8S, server *server.Serv
 	}
 }
 
-func getHealthz(writer http.ResponseWriter, request *http.Request) {
-	details := make(map[string]string)
-	details["k8s"] = k.Status
-	details["server"] = s.Status
+func (api *API) startHttpServer() {
+	router := http.NewServeMux()
+	router.HandleFunc("/healthz", api.getHealthz)
+	router.Handle("/metrics", promhttp.Handler())
 
-	if k.Status == "up" && s.Status == "up" {
-		writer.WriteHeader(http.StatusOK)
-		writer.Write([]byte{})
-	} else {
-		writer.WriteHeader(http.StatusServiceUnavailable)
-		writer.Write([]byte{})
+	httpServer := &http.Server{
+		Addr:    api.addr,
+		Handler: router,
 	}
-}
-
-type healthz struct {
-	Status  string            `json:"status"`
-	Details map[string]string `json:"details"`
+	defer httpServer.Close()
+	if err := httpServer.ListenAndServe(); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"addr": api.addr,
+		}).Fatal("Failed to start API")
+	}
 }

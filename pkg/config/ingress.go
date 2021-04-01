@@ -16,8 +16,8 @@ type IngressOptions struct {
 
 func GetIngressFlagSet() *pflag.FlagSet {
 	flagSet := &pflag.FlagSet{}
-	flagSet.StringVar(&apiOptions.Host, "host", "", "Host for the API server to listen on (default: 0.0.0.0)")
-	flagSet.IntVar(&apiOptions.Port, "port", 8080, "Port for the API server to listen on (default: 8080)")
+	flagSet.StringVar(&ingressOptions.Host, "host", "", "Host for the API server to listen on (default: 0.0.0.0)")
+	flagSet.IntVar(&ingressOptions.Port, "port", 25565, "Port for the API server to listen on (default: 25565)")
 	return flagSet
 }
 

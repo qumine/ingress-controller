@@ -8,7 +8,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -25,42 +24,37 @@ type K8S struct {
 	// Status is the current status of the K8S watcher.
 	Status string
 
-	config *rest.Config
-	stop   chan struct{}
+	kubeconfig string
+	stop       chan struct{}
 }
 
 // NewK8S creates a new k8s instance
 func NewK8S(k8sOptions config.K8SOptions) *K8S {
-	k8s := &K8S{}
-	k8s.stop = make(chan struct{}, 1)
-
-	if k8sOptions.KubeConfig != "" {
-		config, err := clientcmd.BuildConfigFromFlags("", k8sOptions.KubeConfig)
-		if err != nil {
-			logrus.WithError(err).Fatal("unable to load kube-config")
-		}
-
-		k8s.config = config
-	} else {
-		config, err := rest.InClusterConfig()
-		if err != nil {
-			logrus.WithError(err).Fatal("unable to load in-cluster config")
-		}
-
-		k8s.config = config
+	return &K8S{
+		kubeconfig: k8sOptions.KubeConfig,
+		stop:       make(chan struct{}, 1),
 	}
-
-	return k8s
 }
 
 // Start the K8S
 func (k8s *K8S) Start(context context.Context) {
 	defer k8s.close()
-	logrus.Info("starting k8s...")
+	logrus.WithFields(logrus.Fields{
+		"kubeconfig": k8s.kubeconfig,
+	}).Debug("Starting K8S")
 
-	clientset, err := kubernetes.NewForConfig(k8s.config)
+	config, err := clientcmd.BuildConfigFromFlags("", k8s.kubeconfig)
 	if err != nil {
-		logrus.WithError(err).Fatal("unable to create kubernetes clientset")
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"kubeconfig": k8s.kubeconfig,
+		}).Fatal("Failed to start K8S")
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"kubeconfig": k8s.kubeconfig,
+		}).Fatal("Failed to start K8S")
 	}
 
 	watchlist := cache.NewListWatchFromClient(
@@ -83,6 +77,9 @@ func (k8s *K8S) Start(context context.Context) {
 
 	go controller.Run(k8s.stop)
 	k8s.Status = "up"
+	logrus.WithFields(logrus.Fields{
+		"kubeconfig": k8s.kubeconfig,
+	}).Info("Started K8S")
 	for {
 		select {
 		case <-context.Done():

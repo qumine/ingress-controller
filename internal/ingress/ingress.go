@@ -1,4 +1,4 @@
-package server
+package ingress
 
 import (
 	"bytes"
@@ -23,55 +23,64 @@ var (
 	noDeadline time.Time
 )
 
-// Server represents the server
-type Server struct {
+// Ingress represents the server
+type Ingress struct {
 	// Status is the current status of the server.
 	Status string
-	// Addr is the current address of the server.
-	Addr  string
+
+	addr  string
 	state proto.State
 }
 
-// NewServer creates a new server instance with the given host and port
-func NewServer(ingressOptions config.IngressOptions) *Server {
-	return &Server{
-		Addr: ingressOptions.GetAddress(),
+// NewIngress creates a new ingress instance with the options
+func NewIngress(ingressOptions config.IngressOptions) *Ingress {
+	return &Ingress{
+		addr: ingressOptions.GetAddress(),
 	}
 }
 
 // Start the server
-func (server *Server) Start(context context.Context) {
-	logrus.WithField("addr", server.Addr).Info("starting server...")
+func (ing *Ingress) Start(context context.Context) {
+	logrus.WithFields(logrus.Fields{
+		"addr": ing.addr,
+	}).Debug("Starting ingress")
 
-	listener, err := net.Listen("tcp", server.Addr)
+	listener, err := net.Listen("tcp", ing.addr)
 	if err != nil {
-		logrus.WithError(err).Fatal("server failed to start")
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"addr": ing.addr,
+		}).Fatal("Failed to start ingress")
 	}
 
-	server.acceptConnections(context, listener)
+	logrus.WithFields(logrus.Fields{
+		"addr": ing.addr,
+	}).Info("Started ingress")
+	ing.acceptConnections(context, listener)
 }
 
-func (server *Server) acceptConnections(context context.Context, listener net.Listener) {
+func (ing *Ingress) acceptConnections(context context.Context, listener net.Listener) {
 	defer listener.Close()
-	server.Status = "up"
+	ing.Status = "up"
 
 	for {
 		select {
 		case <-context.Done():
-			server.Status = "down"
+			ing.Status = "down"
 			return
 		default:
 			connection, err := listener.Accept()
 			if err != nil {
-				logrus.WithError(err).Error("connection accept failed")
+				logrus.WithError(err).WithFields(logrus.Fields{
+					"addr": ing.addr,
+				}).Error("Failed to accept connection")
 			} else {
-				go server.handleConnection(context, connection)
+				go ing.handleConnection(context, connection)
 			}
 		}
 	}
 }
 
-func (server *Server) handleConnection(context context.Context, client net.Conn) {
+func (ing *Ingress) handleConnection(context context.Context, client net.Conn) {
 	defer client.Close()
 	defer logrus.WithField("client", client.RemoteAddr()).Info("closed client connection")
 	logrus.WithField("client", client.RemoteAddr()).Info("inbound client connection")
@@ -83,7 +92,7 @@ func (server *Server) handleConnection(context context.Context, client net.Conn)
 		logrus.WithError(err).WithField("client", client.RemoteAddr()).Error("setting deadline failed")
 		return
 	}
-	packet, err := proto.ReadPacket(reader, client.RemoteAddr(), server.state)
+	packet, err := proto.ReadPacket(reader, client.RemoteAddr(), ing.state)
 	if err != nil {
 		logrus.WithError(err).WithField("client", client.RemoteAddr()).Error("reading packet failed")
 		return
@@ -107,7 +116,7 @@ func (server *Server) handleConnection(context context.Context, client net.Conn)
 		}).Debug("decoded handshake")
 
 		hostname := handshake.ServerAddress
-		server.findAndConnectBackend(context, client, buffer, hostname, "handshake")
+		ing.findAndConnectBackend(context, client, buffer, hostname, "handshake")
 	} else if packet.PacketID == proto.LegacyServerListPingID {
 		handshake, ok := packet.Data.(*proto.LegacyServerListPing)
 		if !ok {
@@ -121,7 +130,7 @@ func (server *Server) handleConnection(context context.Context, client net.Conn)
 		}).Debug("decoded legacyServerListPing")
 
 		hostname := handshake.ServerAddress
-		server.findAndConnectBackend(context, client, buffer, hostname, "legacyServerListPing")
+		ing.findAndConnectBackend(context, client, buffer, hostname, "legacyServerListPing")
 	} else {
 		logrus.WithFields(logrus.Fields{
 			"client":   client.RemoteAddr(),
@@ -131,7 +140,7 @@ func (server *Server) handleConnection(context context.Context, client net.Conn)
 	}
 }
 
-func (server *Server) findAndConnectBackend(context context.Context, client net.Conn, preReadContent io.Reader, hostname string, packet string) {
+func (ing *Ingress) findAndConnectBackend(context context.Context, client net.Conn, preReadContent io.Reader, hostname string, packet string) {
 	route, err := routing.FindBackend(hostname)
 	if err != nil {
 		logrus.WithError(err).Warn("no matching route found")
@@ -180,11 +189,11 @@ func (server *Server) findAndConnectBackend(context context.Context, client net.
 		}).Error("clearing deadline failed")
 		return
 	}
-	server.relayConnections(context, route, client, upstream)
+	ing.relayConnections(context, route, client, upstream)
 	return
 }
 
-func (server *Server) relayConnections(context context.Context, route string, client net.Conn, upstream net.Conn) {
+func (ing *Ingress) relayConnections(context context.Context, route string, client net.Conn, upstream net.Conn) {
 	defer upstream.Close()
 	defer logrus.WithFields(logrus.Fields{
 		"client":   client.RemoteAddr(),
@@ -196,8 +205,8 @@ func (server *Server) relayConnections(context context.Context, route string, cl
 	}).Debug("relaying connections")
 
 	errors := make(chan error, 2)
-	go server.relay(upstream, client, errors, "upstream", route)
-	go server.relay(client, upstream, errors, "downstream", route)
+	go ing.relay(upstream, client, errors, "upstream", route)
+	go ing.relay(client, upstream, errors, "downstream", route)
 
 	select {
 	case err := <-errors:
@@ -213,7 +222,7 @@ func (server *Server) relayConnections(context context.Context, route string, cl
 	}
 }
 
-func (server *Server) relay(dst net.Conn, src net.Conn, errors chan<- error, direction string, route string) {
+func (ing *Ingress) relay(dst net.Conn, src net.Conn, errors chan<- error, direction string, route string) {
 	logrus.WithFields(logrus.Fields{
 		"dst":       dst.RemoteAddr(),
 		"src":       src.RemoteAddr(),
