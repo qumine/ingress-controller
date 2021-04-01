@@ -18,15 +18,24 @@ func onAdd(obj interface{}) {
 		return
 	}
 
+	hostname := "localhost"
+	if h, exists := service.Annotations[AnnotationHostname]; exists {
+		hostname = h
+	} else {
+		logrus.WithFields(logrus.Fields{
+			"service": service,
+		}).Tracef("Adding service skipped, %s annotation not present", AnnotationHostname)
+		return
+	}
+
 	portname := "minecraft"
 	if p, exists := service.Annotations[AnnotationPortname]; exists {
 		portname = p
 	}
-	hostname := "localhost"
-	if h, exists := service.Annotations[AnnotationHostname]; exists {
-		hostname = h
-	}
-	logrus.WithField("portname", portname).WithField("hostname", hostname).Debug("add route")
+	logrus.WithFields(logrus.Fields{
+		"hostname": hostname,
+		"portname": portname,
+	}).Debug("Adding route")
 
 	for _, p := range service.Spec.Ports {
 		if p.Name == portname {
@@ -44,36 +53,17 @@ func onDelete(obj interface{}) {
 		return
 	}
 
+	if _, exists := service.Annotations[AnnotationHostname]; !exists {
+		logrus.WithFields(logrus.Fields{
+			"service": service,
+		}).Tracef("Deleting service skipped, %s annotation not present", AnnotationHostname)
+		return
+	}
+
 	routing.Remove(string(service.UID))
 }
 
-func onUpdate(oldObj, newObj interface{}) {
-	oldService, ok := newObj.(*v1.Service)
-	if !ok {
-		metrics.ErrorsTotal.With(prometheus.Labels{"error": "InternalError"}).Inc()
-		return
-	}
-	newService, ok := newObj.(*v1.Service)
-	if !ok {
-		metrics.ErrorsTotal.With(prometheus.Labels{"error": "InternalError"}).Inc()
-		return
-	}
-
-	portname := "minecraft"
-	if p, exists := newService.Annotations[AnnotationPortname]; exists {
-		portname = p
-	}
-	hostname := "localhost"
-	if h, exists := newService.Annotations[AnnotationHostname]; exists {
-		hostname = h
-	}
-	logrus.WithField("portname", portname).WithField("hostname", hostname).Debug("add route")
-
-	for _, p := range newService.Spec.Ports {
-		if p.Name == portname {
-			routing.Update(string(oldService.UID), routing.NewRoute(hostname, net.JoinHostPort(newService.Spec.ClusterIP, strconv.Itoa(int(p.Port)))))
-			return
-		}
-	}
-	metrics.ErrorsTotal.With(prometheus.Labels{"error": "NoMatchingPort"}).Inc()
+func onUpdate(oldObj interface{}, newObj interface{}) {
+	onDelete(oldObj)
+	onAdd(newObj)
 }
