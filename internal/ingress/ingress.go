@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -30,6 +31,8 @@ type Ingress struct {
 
 	addr  string
 	state proto.State
+
+	listener net.Listener
 }
 
 // NewIngress creates a new ingress instance with the options
@@ -40,7 +43,9 @@ func NewIngress(ingressOptions config.IngressOptions) *Ingress {
 }
 
 // Start the server
-func (ing *Ingress) Start(context context.Context) {
+func (ing *Ingress) Start(context context.Context, wg *sync.WaitGroup) {
+	defer ing.Stop(wg)
+
 	logrus.WithFields(logrus.Fields{
 		"addr": ing.addr,
 	}).Debug("Starting ingress")
@@ -51,23 +56,39 @@ func (ing *Ingress) Start(context context.Context) {
 			"addr": ing.addr,
 		}).Fatal("Failed to start ingress")
 	}
+	ing.listener = listener
 
 	logrus.WithFields(logrus.Fields{
 		"addr": ing.addr,
 	}).Info("Started ingress")
-	ing.acceptConnections(context, listener)
+	ing.acceptConnections(context, wg, listener)
 }
 
-func (ing *Ingress) acceptConnections(context context.Context, listener net.Listener) {
-	defer listener.Close()
-	ing.Status = "up"
+// Stop the ingress
+func (ing *Ingress) Stop(wg *sync.WaitGroup) {
+	logrus.WithFields(logrus.Fields{
+		"addr": ing.addr,
+	}).Info("Stopping ingress")
 
-	for {
-		select {
-		case <-context.Done():
-			ing.Status = "down"
-			return
-		default:
+	if err := ing.listener.Close(); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"addr": ing.addr,
+		}).Error("Failed to stop ingress")
+	}
+
+	ing.Status = "down"
+	wg.Done()
+	logrus.WithFields(logrus.Fields{
+		"addr": ing.addr,
+	}).Info("Stopped ingress")
+}
+
+func (ing *Ingress) acceptConnections(context context.Context, wg *sync.WaitGroup, listener net.Listener) {
+	ing.Status = "up"
+	wg.Add(1)
+
+	go func() {
+		for ing.Status == "up" {
 			connection, err := listener.Accept()
 			if err != nil {
 				logrus.WithError(err).WithFields(logrus.Fields{
@@ -76,6 +97,13 @@ func (ing *Ingress) acceptConnections(context context.Context, listener net.List
 			} else {
 				go ing.handleConnection(context, connection)
 			}
+		}
+	}()
+
+	for {
+		select {
+		case <-context.Done():
+			return
 		}
 	}
 }

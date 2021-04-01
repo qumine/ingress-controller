@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"context"
+	"sync"
 
 	"github.com/qumine/ingress-controller/pkg/config"
 	"github.com/sirupsen/logrus"
@@ -37,8 +38,8 @@ func NewK8S(k8sOptions config.K8SOptions) *K8S {
 }
 
 // Start the K8S
-func (k8s *K8S) Start(context context.Context) {
-	defer k8s.close()
+func (k8s *K8S) Start(context context.Context, wg *sync.WaitGroup) {
+	defer k8s.Stop(wg)
 	logrus.WithFields(logrus.Fields{
 		"kubeconfig": k8s.kubeconfig,
 	}).Debug("Starting K8S")
@@ -77,6 +78,8 @@ func (k8s *K8S) Start(context context.Context) {
 
 	go controller.Run(k8s.stop)
 	k8s.Status = "up"
+	wg.Add(1)
+
 	logrus.WithFields(logrus.Fields{
 		"kubeconfig": k8s.kubeconfig,
 	}).Info("Started K8S")
@@ -89,6 +92,17 @@ func (k8s *K8S) Start(context context.Context) {
 	}
 }
 
-func (k8s *K8S) close() {
+// Stop the K8S
+func (k8s *K8S) Stop(wg *sync.WaitGroup) {
+	logrus.WithFields(logrus.Fields{
+		"kubeconfig": k8s.kubeconfig,
+	}).Info("Stopping K8S")
+
 	k8s.stop <- struct{}{}
+
+	k8s.Status = "down"
+	wg.Done()
+	logrus.WithFields(logrus.Fields{
+		"kubeconfig": k8s.kubeconfig,
+	}).Info("Stopped K8S")
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/qumine/ingress-controller/internal/api"
@@ -33,21 +34,24 @@ func NewRootCmd() *cobra.Command {
 			logrus.SetLevel(cliOptions.LogLevel)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
+			interrupt := make(chan os.Signal, 1)
+			signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
+			ctx, cancel := context.WithCancel(context.Background())
+			wg := &sync.WaitGroup{}
+
 			k8s := k8s.NewK8S(config.GetK8SOptions())
 			ing := ingress.NewIngress(config.GetIngressOptions())
 			api := api.NewAPI(config.GetAPIOptions(), k8s, ing)
 
-			context, cancel := context.WithCancel(context.Background())
-			defer cancel()
+			go k8s.Start(ctx, wg)
+			go ing.Start(ctx, wg)
+			go api.Start(ctx, wg)
 
-			c := make(chan os.Signal, 1)
-			signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+			<-interrupt
+			logrus.Info("Interrupted, stopping")
 
-			go k8s.Start(context)
-			go ing.Start(context)
-			go api.Start(context)
-
-			<-c
+			cancel()
+			wg.Wait()
 		},
 	}
 	rootCmd.PersistentFlags().AddFlagSet(config.GetCliFlagSet())
