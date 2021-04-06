@@ -16,10 +16,15 @@ builds:
   goarm:
   - 6
   - 7
-  main: ./cmd/ingress-controller
   binary: ingress-controller
   env:
   - CGO_ENABLED=0
+  ldflags:
+  - -s
+  - -w
+  - -X github.com/qumine/ingress-controller/pkg/build.version={{ .Version }}
+  - -X github.com/qumine/ingress-controller/pkg/build.commit={{ .FullCommit }}
+  - -X github.com/qumine/ingress-controller/pkg/build.date={{ .Date }}
 archives:
 - id: tar_gz
   format: tar.gz
@@ -48,7 +53,7 @@ dockers:
   - "--label=org.opencontainers.image.url=https://github.com/qumine/ingress-controller"
   - "--label=org.opencontainers.image.source=https://github.com/qumine/ingress-controller"
   - "--label=org.opencontainers.image.version={{ .Version }}"
-  - "--label=org.opencontainers.image.created={{.Date}}"
+  - "--label=org.opencontainers.image.created={{ .Date }}"
   - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
   - "--label=org.opencontainers.image.licenses=AGPL-3.0"
 - dockerfile: build/package/Dockerfile
@@ -66,7 +71,7 @@ dockers:
   - "--label=org.opencontainers.image.url=https://github.com/qumine/ingress-controller"
   - "--label=org.opencontainers.image.source=https://github.com/qumine/ingress-controller"
   - "--label=org.opencontainers.image.version={{ .Version }}"
-  - "--label=org.opencontainers.image.created={{.Date}}"
+  - "--label=org.opencontainers.image.created={{ .Date }}"
   - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
   - "--label=org.opencontainers.image.licenses=AGPL-3.0"
 docker_manifests:

@@ -32,7 +32,7 @@ func NewRootCmd() *cobra.Command {
 		Use:     "ingress-controller",
 		Short:   "A Kubernetes ingress controller for minecraft servers",
 		Long:    "A Kubernetes ingress controller for minecraft servers",
-		Version: build.Version,
+		Version: build.GetVersion(),
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 			viper.AutomaticEnv()

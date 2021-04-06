@@ -7,6 +7,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// nolint: gochecknoglobals
+var (
+	version = "dev"
+	commit  = ""
+	date    = ""
+	builtBy = ""
+)
+
 //go:generate make generate-bindata
 func init() {
 	// Set
