@@ -60,8 +60,10 @@ spec:
 
 ## Outside of Kubernetes
 
+If you want to run the ingress outside of kubernetes you can do so by providing the ```--kube-config``` flag or environment variable. Keep in mind tho that the routing towards the internal kubernetes services needs to be configured.
+
 ```
-Will follow in the near future
+./ingress-controller --kube-config ~/.kube/config
 ```
 
 # Development
