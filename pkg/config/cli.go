@@ -16,8 +16,8 @@ type CliOptions struct {
 
 func GetCliFlagSet() *pflag.FlagSet {
 	flagSet := &pflag.FlagSet{}
-	flagSet.BoolVarP(&debug, "debug", "d", false, "Debug logging (default: false)")
-	flagSet.BoolVar(&trace, "trace", false, "Trace logging (default: false)")
+	flagSet.BoolVarP(&debug, "debug", "d", false, "Debug logging")
+	flagSet.BoolVar(&trace, "trace", false, "Trace logging")
 	return flagSet
 }
 

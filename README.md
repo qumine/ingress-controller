@@ -17,26 +17,25 @@ Kubernetes ingress controller for routing Minecraft connections based on the req
 
 *The ingress should be run as a daemonset on all of your outwards facing nodes.*
 
-By default the ingress should run fine without customization, but if you need to the behaviour of the ingress can be customized by setting a couple of arguments. Here is the full list of available arguments
+By default the ingress should run fine without customization, but if you need to the behaviour of the ingress can be customized by setting a couple of arguments. Here is the full list of available arguments.
 
 ```
-  -api-host string
-        Address the rest api will listen on (default "0.0.0.0")
-  -api-port int
-        Port the rest api will listen on (default 8080)
-  -debug
-        Enable debugging log level
-  -help
-        Show this page
-  -host string
-        Address the server will listen on (default "0.0.0.0")
-  -kube-config string
-        Path of the kube config file to use
-  -port int
-        Port the server will listen on (default 25565)
-  -version
-        Show the current version
+Usage:
+  ingress-controller [flags]
+
+Flags:
+      --api-host string      Host for the API server to listen on (default "0.0.0.0")
+      --api-port int         Port for the API server to listen on (default 8080)
+  -d, --debug                Debug logging
+  -h, --help                 help for ingress-controller
+      --host string          Host for the API server to listen on (default "0.0.0.0")
+      --kube-config string   KubeConfig path
+      --port int             Port for the API server to listen on (default 25565)
+      --trace                Trace logging
+  -v, --version              version for ingress-controller
 ```
+
+**All configuration options can also be set via environment variables** 
 
 ### Upstream Services
 
