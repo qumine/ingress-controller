@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 
@@ -14,6 +16,8 @@ import (
 	"github.com/qumine/ingress-controller/pkg/config"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 func Execute() {
@@ -30,6 +34,15 @@ func NewRootCmd() *cobra.Command {
 		Long:    "A Kubernetes ingress controller for minecraft servers",
 		Version: build.Version,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+			viper.AutomaticEnv()
+			cmd.Flags().VisitAll(func(f *pflag.Flag) {
+				if !f.Changed && viper.IsSet(f.Name) {
+					val := viper.Get(f.Name)
+					cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+				}
+			})
+
 			cliOptions := config.GetCliOptions()
 			logrus.SetLevel(cliOptions.LogLevel)
 		},
