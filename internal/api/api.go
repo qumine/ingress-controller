@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/qumine/ingress-controller/internal/ingress"
 	"github.com/qumine/ingress-controller/internal/k8s"
 	"github.com/qumine/ingress-controller/pkg/config"
@@ -31,6 +32,7 @@ func NewAPI(apiOptions config.APIOptions, k8s *k8s.K8S, ing *ingress.Ingress) *A
 			Handler: r,
 		},
 	}
+	r.Handle("/metrics", promhttp.Handler())
 	r.HandleFunc("/health/live", api.healthLive)
 	r.HandleFunc("/health/ready", api.healthReady)
 
