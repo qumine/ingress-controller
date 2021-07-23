@@ -1,20 +1,10 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_RANCHER_MONITORING",
-      "label": "RANCHER_MONITORING",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "prometheus",
-      "pluginName": "Prometheus"
-    }
-  ],
   "__requires": [
     {
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "7.1.0"
+      "version": "7.4.5"
     },
     {
       "type": "panel",
@@ -27,35 +17,96 @@
       "id": "prometheus",
       "name": "Prometheus",
       "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
     }
   ],
   "annotations": {
-    "list": [
-      {
-        "builtIn": 1,
-        "datasource": "-- Grafana --",
-        "enable": true,
-        "hide": true,
-        "iconColor": "rgba(0, 211, 255, 1)",
-        "name": "Annotations & Alerts",
-        "type": "dashboard"
-      }
-    ]
+    "list": []
   },
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1599822908289,
+  "iteration": 1627078452841,
   "links": [],
   "panels": [
+    {
+      "cacheTimeout": null,
+      "datasource": "${datasource}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {},
+          "links": [],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 15,
+      "links": [],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.4.5",
+      "targets": [
+        {
+          "expr": "avg(qumine_ingress_routes{namespace=\"$namespace\"})",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Total",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Registered Routes",
+      "type": "stat"
+    },
     {
       "aliasColors": {},
       "bars": false,
       "cacheTimeout": null,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_RANCHER_MONITORING}",
+      "datasource": "${datasource}",
       "fieldConfig": {
         "defaults": {
           "custom": {},
@@ -66,9 +117,9 @@
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 9,
-        "w": 8,
-        "x": 0,
+        "h": 7,
+        "w": 16,
+        "x": 8,
         "y": 0
       },
       "hiddenSeries": false,
@@ -86,8 +137,11 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
       "percentage": false,
-      "pluginVersion": "7.1.0",
+      "pluginVersion": "7.4.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -146,12 +200,76 @@
       }
     },
     {
+      "cacheTimeout": null,
+      "datasource": "${datasource}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {},
+          "links": [],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 7
+      },
+      "id": 11,
+      "links": [],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.4.5",
+      "targets": [
+        {
+          "expr": "sum(qumine_ingress_connections{namespace=\"$namespace\"})",
+          "interval": "",
+          "legendFormat": "Total",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Connections",
+      "type": "stat"
+    },
+    {
       "aliasColors": {},
       "bars": false,
       "cacheTimeout": null,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_RANCHER_MONITORING}",
+      "datasource": "${datasource}",
       "fieldConfig": {
         "defaults": {
           "custom": {},
@@ -162,29 +280,32 @@
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 9,
-        "w": 8,
+        "h": 7,
+        "w": 16,
         "x": 8,
-        "y": 0
+        "y": 7
       },
       "hiddenSeries": false,
-      "id": 11,
+      "id": 16,
       "legend": {
-        "alignAsTable": true,
-        "avg": true,
-        "current": true,
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
         "max": false,
         "min": false,
         "show": true,
         "total": false,
-        "values": true
+        "values": false
       },
       "lines": true,
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
       "percentage": false,
-      "pluginVersion": "7.1.0",
+      "pluginVersion": "7.4.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -248,11 +369,74 @@
       }
     },
     {
+      "datasource": "${datasource}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {},
+          "links": [],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 14
+      },
+      "id": 12,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.4.5",
+      "targets": [
+        {
+          "expr": "sum(rate(qumine_ingress_errors_total{namespace=\"$namespace\"}[$interval]))",
+          "instant": false,
+          "interval": "",
+          "legendFormat": "Total",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Error Rate",
+      "type": "stat"
+    },
+    {
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_RANCHER_MONITORING}",
+      "datasource": "${datasource}",
       "fieldConfig": {
         "defaults": {
           "custom": {},
@@ -263,28 +447,31 @@
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 9,
-        "w": 8,
-        "x": 16,
-        "y": 0
+        "h": 7,
+        "w": 16,
+        "x": 8,
+        "y": 14
       },
       "hiddenSeries": false,
-      "id": 12,
+      "id": 17,
       "legend": {
-        "alignAsTable": true,
-        "avg": true,
-        "current": true,
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
         "max": false,
         "min": false,
         "show": true,
         "total": false,
-        "values": true
+        "values": false
       },
       "lines": true,
       "linewidth": 1,
       "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
       "percentage": false,
-      "pluginVersion": "7.1.0",
+      "pluginVersion": "7.4.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -294,7 +481,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(rate(qumine_ingress_errors_total{namespace=\"$namespace\"}[2m])) by (error)",
+          "expr": "sum(rate(qumine_ingress_errors_total{namespace=\"$namespace\"}[$interval])) by (error)",
           "interval": "",
           "legendFormat": "{{error}}",
           "refId": "A"
@@ -346,7 +533,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_RANCHER_MONITORING}",
+      "datasource": "${datasource}",
       "fieldConfig": {
         "defaults": {
           "custom": {},
@@ -360,27 +547,129 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 9
+        "y": 21
       },
       "hiddenSeries": false,
-      "id": 6,
+      "id": 8,
       "legend": {
-        "alignAsTable": true,
-        "avg": true,
-        "current": true,
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
         "max": false,
         "min": false,
         "rightSide": false,
         "show": true,
         "sideWidth": 350,
         "total": false,
-        "values": true
+        "values": false
       },
       "lines": true,
       "linewidth": 1,
       "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
       "percentage": false,
-      "pluginVersion": "7.1.0",
+      "pluginVersion": "7.4.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", container=~\".*ingress-controller.*\", pod=~\".*ingress-controller.*\"}[$interval])) by (pod)",
+          "interval": "",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "CPU Usage",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${datasource}",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 21
+      },
+      "hiddenSeries": false,
+      "id": 6,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "sideWidth": 350,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.4.5",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -436,124 +725,54 @@
         "align": false,
         "alignLevel": null
       }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "${DS_RANCHER_MONITORING}",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {},
-          "links": []
-        },
-        "overrides": []
-      },
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 9
-      },
-      "hiddenSeries": false,
-      "id": 8,
-      "legend": {
-        "alignAsTable": true,
-        "avg": true,
-        "current": true,
-        "max": false,
-        "min": false,
-        "rightSide": false,
-        "show": true,
-        "sideWidth": 350,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
-      "percentage": false,
-      "pluginVersion": "7.1.0",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", container=~\"ingress-controller.*\", pod=~\"ingress-controller.*\"}[5m])) by (pod)",
-          "interval": "",
-          "legendFormat": "{{pod}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "CPU Usage",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": "",
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
     }
   ],
   "refresh": "1m",
-  "schemaVersion": 26,
+  "schemaVersion": 27,
   "style": "dark",
   "tags": [],
   "templating": {
     "list": [
       {
+        "current": {
+          "selected": false,
+          "text": "default",
+          "value": "default"
+        },
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": false,
+        "label": "Datasource",
+        "multi": false,
+        "name": "datasource",
+        "options": [],
+        "query": "prometheus",
+        "queryValue": "",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
         "allValue": null,
         "current": {},
-        "datasource": "${DS_RANCHER_MONITORING}",
+        "datasource": "${datasource}",
         "definition": "label_values(container_memory_usage_bytes, namespace)",
+        "description": null,
+        "error": null,
         "hide": 0,
         "includeAll": false,
         "label": "Namespace",
         "multi": false,
         "name": "namespace",
         "options": [],
-        "query": "label_values(container_memory_usage_bytes, namespace)",
-        "refresh": 1,
-        "regex": "ingress-controller-.*",
+        "query": {
+          "query": "label_values(container_memory_usage_bytes, namespace)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "qumine-system.*",
         "skipUrlSync": false,
         "sort": 0,
         "tagValuesQuery": "",
@@ -561,6 +780,52 @@
         "tagsQuery": "",
         "type": "query",
         "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "selected": false,
+          "text": "5m",
+          "value": "5m"
+        },
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": false,
+        "label": "Interval",
+        "multi": false,
+        "name": "interval",
+        "options": [
+          {
+            "selected": false,
+            "text": "1m",
+            "value": "1m"
+          },
+          {
+            "selected": false,
+            "text": "2m",
+            "value": "2m"
+          },
+          {
+            "selected": true,
+            "text": "5m",
+            "value": "5m"
+          },
+          {
+            "selected": false,
+            "text": "10m",
+            "value": "10m"
+          },
+          {
+            "selected": false,
+            "text": "15m",
+            "value": "15m"
+          }
+        ],
+        "query": "1m,2m,5m,10m,15m",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
       }
     ]
   },
@@ -583,6 +848,6 @@
   },
   "timezone": "",
   "title": "QuMine Ingress",
-  "uid": "6hF56QCWz",
-  "version": 4
+  "uid": "",
+  "version": 1
 }
