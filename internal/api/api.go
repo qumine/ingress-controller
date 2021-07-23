@@ -46,8 +46,8 @@ func (api *API) Start(context context.Context, wg *sync.WaitGroup) {
 		"addr": api.httpServer.Addr,
 	}).Debug("Starting API")
 
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
 		if err := api.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logrus.WithFields(logrus.Fields{
 				"addr": api.httpServer.Addr,
@@ -59,10 +59,8 @@ func (api *API) Start(context context.Context, wg *sync.WaitGroup) {
 		"addr": api.httpServer.Addr,
 	}).Info("Started API")
 	for {
-		select {
-		case <-context.Done():
-			return
-		}
+		<-context.Done()
+		return
 	}
 }
 
