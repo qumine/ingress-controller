@@ -1,6 +1,4 @@
 {
   "go.toolsManagement.checkForUpdates": "local",
-  "go.useLanguageServer": true,
-  "go.gopath": "/go",
-  "go.goroot": "/usr/local/go"
+  "go.useLanguageServer": true
 }
