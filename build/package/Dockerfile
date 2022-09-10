@@ -1,12 +1,10 @@
-FROM alpine as passwd
-
-FROM scratch
+ARG ARCH=
+FROM ${ARCH}alpine
 
 EXPOSE 80
 EXPOSE 25565
 
 COPY  ingress-controller ingress-controller
-COPY --from=passwd /etc/passwd /etc/passwd
 USER nobody
 
 ENTRYPOINT [ "./ingress-controller" ]
