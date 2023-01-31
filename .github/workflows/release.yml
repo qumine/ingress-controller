@@ -33,7 +33,7 @@ jobs:
           go-version: 1.19.x
 
       - name: GoReleaser
-        uses: goreleaser/goreleaser-action@v4.1.1
+        uses: goreleaser/goreleaser-action@v4.2.0
         with:
           version: latest
           args: release --rm-dist
